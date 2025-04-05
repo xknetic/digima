@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
 use App\Models\Item;
+use App\Models\Inventory;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
@@ -33,9 +35,36 @@ class ItemController extends Controller
         //
         $request->validate([
             // Database Table
+            'item_sku' => 'required',
+            'item_price' => 'required',
+            'item_charged' => 'required',
+            'qty_charged' => 'required',
+            'item_type' => 'required',
         ]);
 
-        Item::create($request->all());
+        $items = Item::create($request->all());
+
+        $items = Item::all();
+        $branches = Branch::all();
+        foreach ($items as $item) {
+            foreach ($branches as $branch) {
+                // Check if the inventory already exists for the specific item and branch
+                $existingInventory = Inventory::where('inventory_item_id', $item->item_id)
+                    ->where('inventory_branch_id', $branch->branch_id)
+                    ->first();
+    
+                // If inventory doesn't exist, create a new one
+                if (!$existingInventory) {
+                    Inventory::create([
+                        'inventory_item_id' => $item->item_id,
+                        'inventory_branch_id' => $branch->branch_id,
+                    ]);
+                }
+            }
+        }
+
+        // Inventory::create($inventory);
+
         return response()->json("Item Created");
     }
 

@@ -2,6 +2,7 @@
 // Layout
 definePageMeta({
   path: "/register",
+  middleware: 'guest',
 });
 
 // Submit form for Add Member
@@ -18,8 +19,7 @@ const form = ref({
 const cookies = useCookie('auth_user_token');
 
 const submitForm = async (event) => {
-  event.preventDefault();
-
+  // event.preventDefault();
   const result = await $fetch("http://127.0.0.1:8000/api/register", {
     method: "POST",
     body: {
@@ -32,7 +32,7 @@ const submitForm = async (event) => {
     },
   });
   cookies.value = result;
-  console.log(cookies.value);
+  window.location.reload();
 };
 </script>
 

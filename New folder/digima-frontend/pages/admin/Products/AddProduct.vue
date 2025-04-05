@@ -4,7 +4,16 @@ definePageMeta({
   layout: "authenticated-layout",
   path: "/admin/product/addproduct",
   name: "Add Product",
+  middleware: "auth",
 });
+
+// Fetching the API
+const { data: categories } = await useFetch(
+  "http://127.0.0.1:8000/api/ProductCategory"
+);
+const { data: memberships } = await useFetch(
+  "http://127.0.0.1:8000/api/Memberships"
+);
 
 // Submit form for Add Member
 const form = ref({
@@ -24,158 +33,320 @@ const form = ref({
   bind_membership_id: "",
 });
 
+const handleError = ref(null);
+
 const submitForm = async (event) => {
   event.preventDefault();
-  const result = await useFetch("http://127.0.0.1:8000/api/Items", {
-    method: "POST",
-    body: {
-      item_sku: form.value.item_sku,
-      item_thumbnail: form.value.item_thumbnail,
-      item_description: form.value.item_description,
-      item_inclusion_details: form.value.item_inclusion_details,
-      item_barcode: form.value.item_barcode,
-      item_price: form.value.item_price,
-      item_charged: form.value.item_charged,
-      qty_charged: form.value.qty_charged,
-      item_type: form.value.item_type,
-      item_category: form.value.item_category,
-      item_sub_category: form.value.item_sub_category,
-      item_pv: form.value.item_pv,
-      item_availability: form.value.item_availability,
-      bind_membership_id: form.value.bind_membership_id,
-    },
-  });
-  console.log(result);
+  try {
+    const result = await $fetch("http://127.0.0.1:8000/api/Items", {
+      method: "POST",
+      body: {
+        item_sku: form.value.item_sku,
+        item_thumbnail: form.value.item_thumbnail,
+        item_description: form.value.item_description,
+        item_inclusion_details: form.value.item_inclusion_details,
+        item_barcode: form.value.item_barcode,
+        item_price: form.value.item_price,
+        item_charged: form.value.item_charged,
+        qty_charged: form.value.qty_charged,
+        item_type: form.value.item_type,
+        item_category: form.value.item_category,
+        item_sub_category: form.value.item_sub_category,
+        item_pv: form.value.item_pv,
+        item_availability: form.value.item_availability,
+        bind_membership_id: form.value.bind_membership_id,
+      },
+    });
+    // console.error(result);
+  } catch (error) {
+    // console.log(error.data);
+    handleError.value = error.data.errors;
+    // console.error(handleError.value);
+  }
 };
+
+// Define the options for the select component
+const options = ref([
+  { label: "Product/Items Only", value: "product" },
+  { label: "Membership Package Only", value: "membership" },
+]);
+
+const formattedCategories = ref([
+  { label: "None", value: null },
+  ...categories.value.map((category) => ({
+    label: category.category_name,
+    value: category.category_id,
+  })),
+]);
+
+const formattedMemberships = computed(() => {
+  return memberships.value.map((membership) => ({
+    label: membership.membership_name,
+    value: membership.membership_id,
+  }));
+});
 </script>
 
 <template>
   <div>
     <ProductNavigation />
 
-    <div class="flex justify-center items-center m-10">
+    <div v-if="handleError" class="absolute top-15 right-5">
+      <div v-for="(error, index) in handleError" :key="index">
+        <!-- Each error message is wrapped in its own div with styling for spacing and background color -->
+        <div class="mt-2">
+          <ErrorHandler>
+            {{ error }}
+          </ErrorHandler>
+        </div>
+      </div>
+    </div>
+
+    <div class="m-5">
       <div class="space-y-5">
         <div class="flex justify-between items-center">
           <div>
             <p class="font-semibold">Add Product</p>
-            <span class="font-medium text-sm text-gray-700"
-                    >Description</span
-                  >
+            <span class="font-medium text-sm text-gray-700">Description</span>
           </div>
-          <button @click="submitForm" class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg">Add</button>
+          <button
+            @click="submitForm"
+            class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
+          >
+            Add
+          </button>
         </div>
-        <Card>
-          <form @submit.prevent="submitForm">
-            <div class="space-y-4">
-              <div class="flex space-x-30 items-center justify-between">
-                <div>
-                  <InputLabel for="slot_username">Sponsor Username</InputLabel>
-                  <span class="font-medium text-sm text-gray-700"
-                    >Description</span
-                  >
+        <form @submit.prevent="submitForm">
+          <div class="flex">
+            <Card>
+              <div class="space-y-4">
+                <div class="flex space-x-4">
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="item_sku">Product SKU</InputLabel>
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <TextInput
+                      id="item_sku"
+                      placeholder=""
+                      v-model="form.item_sku"
+                    />
+                  </div>
+
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="item_barcode">Barcode</InputLabel>
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <TextInput
+                      id="item_barcode"
+                      placeholder=""
+                      v-model="form.item_barcode"
+                    />
+                  </div>
+
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="item_price">Price</InputLabel>
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <TextInput
+                      id="item_price"
+                      placeholder=""
+                      v-model="form.item_price"
+                    />
+                  </div>
                 </div>
-                <TextInput
-                  id="slot_username"
-                  placeholder=""
-                  v-model="form.slot_username"
-                />
-              </div>
 
-              <hr class="h-px bg-gray-200 border-0" />
+                <hr class="h-px bg-gray-200 border-0" />
 
-              <div class="flex space-x-10 items-center justify-between">
-                <div>
-                  <InputLabel for="username">Username</InputLabel>
-                  <span class="font-medium text-sm text-gray-700"
-                    >Description</span
-                  >
+                <div class="space-x-10 items-center justify-between">
+                  <div>
+                    <InputLabel for="item_description">
+                      Product Details</InputLabel
+                    >
+                    <span class="font-medium text-sm text-gray-700"
+                      >Description</span
+                    >
+                  </div>
+                  <TextAreaInput
+                    id="item_description"
+                    placeholder=""
+                    v-model="form.item_description"
+                  />
                 </div>
-                <TextInput
-                  id="username"
-                  placeholder=""
-                  v-model="form.username"
-                />
-              </div>
 
-              <hr class="h-px bg-gray-200 border-0" />
+                <hr class="h-px bg-gray-200 border-0" />
 
-              <div class="flex space-x-10 items-center justify-between">
-                <div>
-                  <InputLabel for="email">Email</InputLabel>
-                  <span class="font-medium text-sm text-gray-700"
-                    >Description</span
-                  >
+                <div class="space-x-10 items-center justify-between">
+                  <div>
+                    <InputLabel for="item_inclusion_details">
+                      Product Inclusion Details</InputLabel
+                    >
+                    <span class="font-medium text-sm text-gray-700"
+                      >Description</span
+                    >
+                  </div>
+                  <TextAreaInput
+                    id="item_inclusion_details"
+                    placeholder=""
+                    v-model="form.item_inclusion_details"
+                  />
                 </div>
-                <TextInput id="email" placeholder="" type="email" v-model="form.email" />
-              </div>
 
-              <hr class="h-px bg-gray-200 border-0" />
+                <hr class="h-px bg-gray-200 border-0" />
 
-              <div class="flex space-x-10 items-center justify-between">
-                <div>
-                  <InputLabel for="first_name">First Name</InputLabel>
-                  <span class="font-medium text-sm text-gray-700"
-                    >Description</span
-                  >
+                <div class="flex space-x-4">
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="item_pv">Item PV</InputLabel>
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <TextInput
+                      id="item_pv"
+                      placeholder=""
+                      v-model="form.item_pv"
+                    />
+                  </div>
+
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="type">Type</InputLabel>
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <div>
+                      <Uselect
+                        id="type"
+                        :options="options"
+                        v-model="form.item_type"
+                        placeholder="Select a Type"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="item_category">Category</InputLabel>
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <div>
+                      <Uselect
+                        id="type"
+                        :options="formattedCategories"
+                        v-model="form.item_category"
+                        placeholder="Select a Category"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <TextInput
-                  id="first_name"
-                  placeholder=""
-                  v-model="form.first_name"
-                />
-              </div>
 
-              <hr class="h-px bg-gray-200 border-0" />
+                <hr class="h-px bg-gray-200 border-0" />
 
-              <div class="flex space-x-10 items-center justify-between">
-                <div>
-                  <InputLabel for="middle_name">Middle Name</InputLabel>
-                  <span class="font-medium text-sm text-gray-700"
-                    >Description</span
-                  >
+                <div class="flex space-x-4">
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="item_sub_category"
+                        >Sub-Category</InputLabel
+                      >
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <TextInput
+                      id="item_sub_category"
+                      placeholder=""
+                      v-model="form.item_sub_category"
+                    />
+                  </div>
+
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="item_availability"
+                        >Availability</InputLabel
+                      >
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <TextInput
+                      id="item_availability"
+                      placeholder=""
+                      v-model="form.item_availability"
+                    />
+                  </div>
+
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="bind_membership_id"
+                        >Bind Membership</InputLabel
+                      >
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <div>
+                      <Uselect
+                        id="type"
+                        :options="formattedMemberships"
+                        v-model="form.bind_membership_id"
+                        placeholder="Select a Membership"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <TextInput
-                  id="middle_name"
-                  placeholder=""
-                  v-model="form.middle_name"
-                />
-              </div>
 
-              <hr class="h-px bg-gray-200 border-0" />
+                <hr class="h-px bg-gray-200 border-0" />
 
-              <div class="flex space-x-10 items-center justify-between">
-                <div>
-                  <InputLabel for="last_name">Last Name</InputLabel>
-                  <span class="font-medium text-sm text-gray-700"
-                    >Description</span
-                  >
+                <div class="flex space-x-4">
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="item_charged">Item Charged</InputLabel>
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <TextInput
+                      id="item_charged"
+                      placeholder=""
+                      v-model="form.item_charged"
+                    />
+                  </div>
+
+                  <div class="space-x-10 items-center justify-between">
+                    <div>
+                      <InputLabel for="qty_charged">Qty Charged (%)</InputLabel>
+                      <span class="font-medium text-sm text-gray-700"
+                        >Description</span
+                      >
+                    </div>
+                    <TextInput
+                      id="qty_charged"
+                      placeholder=""
+                      v-model="form.qty_charged"
+                    />
+                  </div>
                 </div>
-                <TextInput
-                  id="last_name"
-                  placeholder=""
-                  v-model="form.last_name"
-                />
               </div>
+            </Card>
 
-              <hr class="h-px bg-gray-200 border-0" />
-
-              <div class="flex space-x-10 items-center justify-between">
-                <div>
-                  <InputLabel for="password">Password</InputLabel>
-                  <span class="font-medium text-sm text-gray-700"
-                    >Description</span
-                  >
-                </div>
-                <TextInput
-                  id="password"
-                  placeholder=""
-                  v-model="form.password"
-                  type="password"
-                />
-              </div>
-            </div>
-          </form>
-        </Card>
+            <!-- <div v-if="form.item_type === 'membership'"> -->
+              <!-- <div>
+              <Card> asd </Card>
+            </div> -->
+          </div>
+        </form>
       </div>
     </div>
   </div>

@@ -1,10 +1,28 @@
-<script>
+<script setup>
+import { ref, onMounted } from "vue";
+
 // Layout
 definePageMeta({
   layout: "member-layout",
-  path: "/member/dashboard",
+  path: "/dashboard",
   name: "Dashboard",
+  middleware: "member",
 });
+
+// Fetching the API
+const { data: slots } = await useFetch("http://127.0.0.1:8000/api/Slots");
+
+// Get the Selected accounts based on slot_id
+const selectedSlotData = ref(null);
+
+onMounted(() => {
+  const storedSlotData = localStorage.getItem("selectedSlotData");
+  if (storedSlotData) {
+    selectedSlotData.value = JSON.parse(storedSlotData); // Parse the data
+  }
+});
+
+const showAddMember = ref(false);
 </script>
 
 <template>
@@ -19,17 +37,50 @@ definePageMeta({
           <div class="flex space-x-2">
             <Logo class="w-auto h-[15vh]" />
             <div class="text-md font-medium">
-              <span class="font-bold">ACCOUNT NAME</span>
-              <p>Username: {{}}</p>
-              <p>Package: {{}}</p>
-              <p>Sponsor Username: {{}}</p>
+              <span class="font-bold"
+                >{{
+                  selectedSlotData ? selectedSlotData.users.first_name : "--"
+                }}
+                {{
+                  selectedSlotData ? selectedSlotData.users.middle_name : "--"
+                }}
+                {{
+                  selectedSlotData ? selectedSlotData.users.last_name : "--"
+                }}</span
+              >
+              <p>
+                Username:
+                {{ selectedSlotData ? selectedSlotData.slot_username : "--" }}
+              </p>
+              <p>
+                Package:
+                {{
+                  selectedSlotData && selectedSlotData.memberships
+                    ? selectedSlotData.memberships.membership_name || "--"
+                    : "--"
+                }}
+              </p>
+              <p>
+                Sponsor Username:
+                {{
+                  selectedSlotData && selectedSlotData.sponsor_info
+                    ? selectedSlotData.sponsor_info.slot_username || "--"
+                    : "--"
+                }}
+              </p>
               <p>Rank: {{}}</p>
               <p class="font-semibold text-gray-600">Main Account</p>
             </div>
           </div>
 
           <!-- Links -->
-          <div>asdsa</div>
+          <div class="flex flex-col justify-center items-center">
+            <ResponsiveNavLink :href="'/'"> Referral Link </ResponsiveNavLink>
+            <ResponsiveNavLink @click="showAddMember = true">
+              Add Member
+            </ResponsiveNavLink>
+            <ResponsiveNavLink :href="'/'"> Settings </ResponsiveNavLink>
+          </div>
         </div>
 
         <!-- Table -->
@@ -45,9 +96,7 @@ definePageMeta({
                     >
                       <tr>
                         <th class="py-3 px-4 whitespace-nowrap">
-                          <div class=" text-left">
-                            POSTING DATE
-                          </div>
+                          <div class="text-left">POSTING DATE</div>
                         </th>
                         <th class="p-2 whitespace-nowrap">
                           <div class="font-semibold text-left">DETAIL</div>
@@ -391,5 +440,16 @@ definePageMeta({
         </div>
       </div>
     </div>
+
+    <!-- Modal -->
+    <Modal
+      :show="showAddMember"
+      :closeable="true"
+      @close="showAddMember = false"
+    >
+      <div class="bg-white py-1 rounded-lg">
+        <AddMemberForm />
+      </div>
+    </Modal>
   </div>
 </template>

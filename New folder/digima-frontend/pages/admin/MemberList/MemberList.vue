@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 // Layout
 definePageMeta({
@@ -12,6 +12,10 @@ definePageMeta({
 // Fetching the API
 const { data: slots } = await useFetch("http://127.0.0.1:8000/api/Slots");
 const { data: codes } = await useFetch("http://127.0.0.1:8000/api/Codes");
+const { data: memberships } = await useFetch(
+  "http://127.0.0.1:8000/api/Memberships"
+);
+
 // Fetch User
 const cookies = useCookie("auth_user_token");
 const data = ref(null);
@@ -22,8 +26,7 @@ const result = await $fetch("http://127.0.0.1:8000/api/user", {
 });
 data.value = result;
 
-// Get first Null by code_slot_used
-const firstNullCode = codes.value.find((code) => code.code_used_by === null);
+// const firstNullMembership = codes.value.find((code) => code.code_used_by === null);
 
 // Get the ID
 // const firstNullCodeId = firstNullCode ? firstNullCode.id : null;
@@ -31,18 +34,43 @@ const firstNullCode = codes.value.find((code) => code.code_used_by === null);
 // Create Slot Form
 const form = ref({
   slot_id: "",
-  slot_sponsor: 5,
+  slot_sponsor: "",
+  slot_membership_id: "",
+});
+
+// Get first Null by code_used_by
+const firstNullCode = computed(() => {
+  return codes.value.find((code) => {
+    return (
+      code.code_used_by === null &&
+      code.code_sold_to === null &&
+      code.inventories?.items?.membership_id === form.value.slot_membership_id
+    );
+  });
+});
+
+// user Filter
+const userFilter = computed(() => {
+  const seen = new Set();
+  return slots.value.filter((slot) => {
+    if (!seen.has(slot.slot_user_id)) {
+      seen.add(slot.slot_user_id);
+      return true;
+    }
+    return false;
+  });
 });
 
 const submitForm = async (event) => {
   event.preventDefault();
   const result = await useFetch(
-    `http://127.0.0.1:8000/api/Codes/${firstNullCode.code_id}`,
+    `http://127.0.0.1:8000/api/Slot/Generate/${firstNullCode.value.code_id}`,
     {
       method: "PUT",
       body: {
         slot_id: form.value.slot_id,
         slot_sponsor: form.value.slot_sponsor,
+        slot_membership_id: form.value.slot_membership_id,
       },
     }
   );
@@ -82,15 +110,6 @@ const showCreateSlot = ref(false);
             class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
           >
             Slot Limit/Member
-          </button>
-        </div>
-
-        <div>
-          <button
-            @click="showModalAddMember = true"
-            class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
-          >
-            Add Member
           </button>
         </div>
       </div>
@@ -184,6 +203,33 @@ const showCreateSlot = ref(false);
         <Card>
           <form>
             <div class="space-y-4">
+              <div class="flex space-x-10 items-center justify-between">
+                <div>
+                  <InputLabel for="membership">Membership</InputLabel>
+                  <span class="font-medium text-sm text-gray-700"
+                    >Description</span
+                  >
+                </div>
+                <div class="mb-4">
+                  <select
+                    v-model="form.slot_membership_id"
+                    id="membership"
+                    class="mt-2 p-2 border border-gray-300 rounded-lg w-full"
+                  >
+                    <option disabled value="">Please select a Membership</option>
+                    <option
+                      v-for="membership in memberships"
+                      :key="membership.id"
+                      :value="membership.membership_id"
+                    >
+                      {{ membership.membership_name }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <hr class="h-px bg-gray-200 border-0" />
+
               <div class="flex space-x-30 items-center justify-between">
                 <div>
                   <InputLabel for="code_activation">Code</InputLabel>
@@ -193,7 +239,8 @@ const showCreateSlot = ref(false);
                 </div>
                 <TextInput
                   id="code_activation"
-                  :placeholder="firstNullCode.code_activation"
+                  :placeholder="firstNullCode?.code_activation"
+                  :value="firstNullCode?.code_activation"
                   :disabled="true"
                 />
               </div>
@@ -209,7 +256,8 @@ const showCreateSlot = ref(false);
                 </div>
                 <TextInput
                   id="code_pin"
-                  :placeholder="firstNullCode.code_pin"
+                  :placeholder="firstNullCode?.code_pin"
+                  :value="firstNullCode?.code_pin"
                   :disabled="true"
                 />
               </div>
@@ -229,16 +277,16 @@ const showCreateSlot = ref(false);
                   > -->
                   <select
                     v-model="form.slot_id"
-                    id="slotUser"
+                    id="slot_owner"
                     class="mt-2 p-2 border border-gray-300 rounded-lg w-full"
                   >
                     <option disabled value="">Please select a slot</option>
                     <option
-                      v-for="slot in slots"
+                      v-for="slot in userFilter"
                       :key="slot.slot_id"
                       :value="slot.slot_id"
                     >
-                      {{ slot.slot_id }}
+                      {{ slot.users?.email }}
                     </option>
                   </select>
                 </div>

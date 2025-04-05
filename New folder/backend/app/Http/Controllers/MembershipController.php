@@ -13,7 +13,8 @@ class MembershipController extends Controller
     public function index()
     {
         //
-        return response()->json("Membership Index");
+        $memberships = Membership::all();
+        return response()->json($memberships);
     }
 
     /**

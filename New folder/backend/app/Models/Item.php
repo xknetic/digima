@@ -18,7 +18,7 @@ class Item extends Model
 
     protected $guarded = [];
     
-    // public function items(){
-    //     return $this->belongsTo(Item::class);
-    // }
+    public function memberships(){
+        return $this->belongsTo(Membership::class, 'membership_id', 'membership_id');
+    }
 }

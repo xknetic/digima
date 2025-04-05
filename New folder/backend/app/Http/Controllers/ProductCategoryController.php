@@ -13,7 +13,8 @@ class ProductCategoryController extends Controller
     public function index()
     {
         //
-        return response()->json("Product Category Index");
+        $categories = ProductCategory::all();
+        return response()->json($categories);
     }
 
     /**
@@ -35,6 +36,7 @@ class ProductCategoryController extends Controller
         ]);
 
         ProductCategory::create($request->all());
+        
         return response()->json("Product Category Created");
     }
 

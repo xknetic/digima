@@ -1,12 +1,12 @@
 <template>
     <div class="text-input">
-      <input
+      <textarea
         v-bind="$attrs"
         v-model="inputValue"
         :id="id"
         :placeholder="placeholder"
         :type="type"
-        class="w-full bg-white text-sm border-1 border-gray-300 rounded-md px-2 py-1 focus:bg-white focus:outline-none focus:ring-1 focus:ring-gray-600 transition ease-in-out duration-150"
+        class="w-full h-[20vh] bg-white text-sm border-1 border-gray-300 rounded-md px-2 py-1 focus:bg-white focus:outline-none focus:ring-1 focus:ring-gray-600 transition ease-in-out duration-150"
       />
     </div>
   </template>

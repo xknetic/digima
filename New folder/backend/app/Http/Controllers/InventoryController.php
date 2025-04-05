@@ -14,8 +14,8 @@ class InventoryController extends Controller
     {
         //
         $inventories = Inventory::with(['branches', 'items'])->get();
-        dd($inventories);
-        // return response()->json($inventories);
+        // dd($inventories);
+        return response()->json($inventories);
     }
 
     /**

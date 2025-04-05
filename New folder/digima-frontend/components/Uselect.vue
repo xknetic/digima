@@ -1,22 +1,39 @@
 <template>
-  <div class="uselect">
+  <div class="relative" ref="dropdownContainer">
     <div
-      class="uselect__selected"
+      class="flex justify-between items-center space-x-2 w-full bg-white text-sm border-1 border-gray-300 rounded-md px-2 py-1 cursor-pointer"
       @click="toggleDropdown"
-      :class="{ 'uselect__selected--open': isOpen }"
+      :class="{ 'border-blue-500': isOpen }"
     >
       <span>{{ selectedLabel || placeholder }}</span>
-      <i class="uselect__arrow"></i>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="size-5"
+        :class="{ 'rotate-180 transition-all duration-200 ease-in-out': isOpen }"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m19.5 8.25-7.5 7.5-7.5-7.5"
+        />
+      </svg>
     </div>
 
-    <ul v-if="isOpen" class="uselect__dropdown">
+    <ul
+      v-if="isOpen"
+      class="absolute top-full left-0 w-full mt-1 bg-white border-1 border-gray-300 rounded-md max-h-48 overflow-y-auto"
+    >
       <li
         v-for="(option, index) in options"
         :key="index"
         @click="selectOption(option)"
-        class="uselect__dropdown-item"
+        class="p-2 text-sm cursor-pointer hover:bg-blue-500 hover:text-white transition-all duration-200 ease-in-out"
         :class="{
-          'uselect__dropdown-item--selected': option.value === selectedValue,
+          'bg-blue-500 text-white': option.value === selectedValue,
         }"
       >
         {{ option.label }}
@@ -26,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 
 // Define props
 const props = defineProps({
@@ -62,6 +79,9 @@ const selectedLabel = computed(() => {
   return selectedOption ? selectedOption.label : "";
 });
 
+// Reference to dropdown container
+const dropdownContainer = ref(null);
+
 // Method to toggle dropdown visibility
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
@@ -73,60 +93,21 @@ const selectOption = (option) => {
   isOpen.value = false;
   emit("update:modelValue", selectedValue.value);
 };
+
+// Close the dropdown if clicked outside
+const handleClickOutside = (event) => {
+  if (dropdownContainer.value && !dropdownContainer.value.contains(event.target)) {
+    isOpen.value = false;
+  }
+};
+
+// Add event listener when component is mounted
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+// Remove event listener when component is unmounted
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
-
-<style scoped>
-.uselect {
-  position: relative;
-  width: 200px;
-}
-
-.uselect__selected {
-  padding: 10px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 4px;
-}
-
-.uselect__selected--open {
-  border-color: #007bff;
-}
-
-.uselect__arrow {
-  border: solid #000;
-  border-width: 0 2px 2px 0;
-  display: inline-block;
-  padding: 3px;
-  transform: rotate(45deg);
-  transition: transform 0.3s ease;
-}
-
-.uselect__dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  margin-top: 2px;
-  padding: 0;
-  list-style-type: none;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.uselect__dropdown-item {
-  padding: 8px;
-  cursor: pointer;
-}
-
-.uselect__dropdown-item:hover,
-.uselect__dropdown-item--selected {
-  background-color: #007bff;
-  color: white;
-}
-</style>

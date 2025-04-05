@@ -1,4 +1,7 @@
 <script setup>
+// Cookies
+const cookies = useCookie("auth_user_token");
+
 let prevScrollPos = window.pageYOffset;
 const navbar = document.getElementById("navbar");
 
@@ -15,6 +18,16 @@ window.onscroll = function () {
 
   prevScrollPos = currentScrollPos;
 };
+
+// Tracking cookies
+const isAuth = ref(false);
+watchEffect(() => {
+  if (cookies.value) {
+    isAuth.value = true;
+  } else {
+    isAuth.value = false;
+  }
+});
 </script>
 
 <template>
@@ -27,9 +40,16 @@ window.onscroll = function () {
         PART OF OUR FAST GROWING COPANY
         <span class="font-semibold"><a href="">JOIN NOW!</a></span>
       </p>
-      <div class="flex space-x-2">
-        <NuxtLink to="/register" class=""> REGISTER </NuxtLink>
-        <NuxtLink to="/login" class="font-semibold"> LOGIN </NuxtLink>
+      <div v-if="isAuth">
+        <NuxtLink to="/login" class="font-semibold">
+          {{ cookies.user.first_name }} {{ cookies.user.last_name }}
+        </NuxtLink>
+      </div>
+      <div v-else>
+        <div class="flex space-x-2">
+          <NuxtLink to="/register" class=""> REGISTER </NuxtLink>
+          <NuxtLink to="/login" class="font-semibold"> LOGIN </NuxtLink>
+        </div>
       </div>
     </div>
     <!-- Top Navigation -->

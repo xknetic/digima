@@ -6,6 +6,8 @@ definePageMeta({
   name: "Home",
   middleware: "auth",
 })
+
+
 </script>
 
 <template>

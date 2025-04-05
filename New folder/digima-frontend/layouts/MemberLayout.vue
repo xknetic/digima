@@ -1,27 +1,63 @@
-<script setup></script>
+<script setup>
+const isSidebarOpen = ref(false);
+onMounted(() => {
+  const savedSidebarState = localStorage.getItem("isSidebarOpen");
+  if (savedSidebarState !== null) {
+    isSidebarOpen.value = JSON.parse(savedSidebarState);
+  }
+});
+
+const toggleSidebar = () => {
+  isSidebarOpen.value = !isSidebarOpen.value;
+  localStorage.setItem("isSidebarOpen", JSON.stringify(isSidebarOpen.value));
+};
+
+// Fetch user
+const cookies = useCookie("auth_user_token");
+const data = ref(null);
+
+const result = await $fetch("http://127.0.0.1:8000/api/user", {
+  headers: {
+    Authorization: `Bearer ${cookies.value.token}`,
+  },
+});
+data.value = result;
+
+// Logout
+const logout = async (event) => {
+  event.preventDefault();
+
+  const result = await $fetch("http://127.0.0.1:8000/api/logout", {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${cookies.value.token}`,
+    },
+  });
+  cookies.value = null;
+  window.location.reload();
+};
+</script>
 
 <template>
   <div class="w-screen h-screen">
     <div class="flex">
       <!-- Sidebar -->
-      <aside class="w-[15vw]">
+      <aside
+        :class="isSidebarOpen ? 'w-[15vw]' : 'w-19 xl:visible xl:block hidden'"
+        class="bg-white flex flex-col justify-between rounded-lg transition-all duration-300"
+      >
         <nav
           class="border-r-1 border-slate-200 flex flex-col justify-between h-screen"
         >
           <!-- top -->
           <div class="px-4 py-2 space-y-4">
-            <button
-              class="hover:bg-slate-200 px-2 py-1 rounded-md w-full text-md font-medium flex space-x-1"
-            >
-              <div class="bg-black rounded-full">as..</div>
-              <span class="truncate">Switch Accounts</span>
-            </button>
+            <SwitchAccount />
 
             <!-- Navigations -->
             <div class="space-y-1">
               <ResponsiveNavLink
                 class="items-center"
-                :href="'/member/dashboard'"
+                :href="'/dashboard'"
               >
                 <div class="rounded-full">
                   <svg
@@ -42,7 +78,7 @@
                 <span class="truncate">Dashboard</span>
               </ResponsiveNavLink>
 
-              <ResponsiveNavLink class="items-center" :href="'/'">
+              <ResponsiveNavLink class="items-center" :href="'/transactionsummary'">
                 <div class="rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -166,31 +202,70 @@
 
           <!-- Bottom -->
           <div>
-            <hr class="h-px w-full bg-slate-200 border-0" />
-            <div class="px-4 py-2">
-              <button
-                class="cursor-pointer hover:bg-slate-200 px-2 py-1 rounded-md w-full text-md font-bold flex justify-between"
-              >
-                <div class="flex space-x-1">
-                  <div class="bg-black rounded-full">as..</div>
-                  <span class="truncate">User</span>
+            <Dropdown
+              :align="'right'"
+              :width="'48'"
+              contentClasses="bg-white"
+              direction="top"
+            >
+              <!-- Trigger Slot -->
+              <template #trigger>
+                <hr class="h-px w-full bg-slate-200 border-0" />
+                <div class="px-4 py-2">
+                  <button
+                    class="cursor-pointer hover:bg-slate-200 px-2 py-1 rounded-md w-full text-md font-base flex justify-between"
+                  >
+                    <div class="flex space-x-1 w-full">
+                      <div class="bg-black rounded-full">as..</div>
+                      <span class="truncate">{{ data.first_name }} {{ data.last_name }}</span>
+                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="size-6"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+                      />
+                    </svg>
+                  </button>
                 </div>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="size-6"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
-                  />
-                </svg>
-              </button>
-            </div>
+              </template>
+
+              <!-- Content Slot -->
+              <template #content>
+                <div>
+                  <hr class="h-px my-1 bg-gray-200 border-0" />
+
+                  <div class="px-1 pb-1">
+                    <ResponsiveNavLink class="items-center" @click="logout">
+                      <div class="rounded-full">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="size-6"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"
+                          />
+                        </svg>
+                      </div>
+                      <span class="truncate">Logout</span>
+                    </ResponsiveNavLink>
+                  </div>
+                </div>
+              </template>
+            </Dropdown>
           </div>
         </nav>
       </aside>
@@ -203,6 +278,7 @@
             <!-- Left Side -->
             <div class="flex space-x-1 items-center">
               <button
+                @click="toggleSidebar"
                 class="cursor-pointer hover:bg-slate-200 px-2 py-1 rounded-lg flex space-x-2 items-center"
               >
                 <svg

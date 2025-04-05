@@ -28,6 +28,7 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 // Routes
 Route::apiResource('Tests', MemberListController::class);
 Route::apiResource('Slots', SlotController::class);
+Route::match(['put', 'patch'],'/Slot/Generate/{id}', [SlotController::class, 'generateCode']);
 Route::apiResource('Memberships', MembershipController::class);
 Route::apiResource('ProductCategory', ProductCategoryController::class);
 Route::apiResource('ProductSubCategory', ProductSubcategoryController::class);

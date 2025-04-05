@@ -14,6 +14,8 @@ class Inventory extends Model
 
     protected $table = 'inventories';
 
+    protected $primaryKey = 'inventory_id';
+
     protected $guarded = [];
 
     public function branches(){

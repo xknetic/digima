@@ -4,7 +4,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 const props = defineProps({
     align: {
         type: String,
-        default: 'right',
+        default: 'right', // Default alignment
     },
     width: {
         type: String,
@@ -13,6 +13,10 @@ const props = defineProps({
     contentClasses: {
         type: String,
         default: 'py-1 bg-white',
+    },
+    direction: {
+        type: String,
+        default: 'bottom', // New prop to control dropdown direction
     },
 });
 
@@ -28,14 +32,15 @@ onUnmounted(() => document.removeEventListener('keydown', closeOnEscape));
 const widthClass = computed(() => {
     return {
         48: 'w-48',
+        full: 'w-full',
     }[props.width.toString()];
 });
 
 const alignmentClasses = computed(() => {
     if (props.align === 'left') {
-        return 'ltr:origin-top-left rtl:origin-top-right start-0';
+        return 'origin-top-left';
     } else if (props.align === 'right') {
-        return 'ltr:origin-top-right rtl:origin-top-left end-0';
+        return 'origin-top-right';
     } else {
         return 'origin-top';
     }
@@ -65,7 +70,12 @@ const open = ref(false);
                 v-show="open"
                 class="absolute z-50 rounded-md shadow-lg"
                 :class="[widthClass, alignmentClasses]"
-                style="display: none"
+                :style="{
+                    [props.direction === 'top' ? 'bottom' : 'top']: '100%',
+                    left: props.align === 'right' ? 'auto' : '0',
+                    right: props.align === 'right' ? '0' : 'auto',
+                    transform: props.direction === 'top' ? 'translateY(0)' : 'translateY(0)',
+                }"
                 @click="open = false"
             >
                 <div class="rounded-md ring-1 ring-slate-200 ring-opacity-5" :class="contentClasses">

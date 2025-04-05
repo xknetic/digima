@@ -2,30 +2,34 @@
 // Layout
 definePageMeta({
   path: "/login",
+  middleware: "guest",
 });
 
 // Submit form
 const form = ref({
-  email: "asdsa@gmail.com",
-  password: "password",
+  email: "",
+  password: "",
 });
 
 // Cookies
-const cookies = useCookie('auth_user_token');
+const cookies = useCookie("auth_user_token");
 
 const submitForm = async (event) => {
   event.preventDefault();
-
-  const result = await $fetch("http://127.0.0.1:8000/api/login", {
-    method: "POST",
-    body: {
-      email: form.value.email,
-      password: form.value.password,
-    },
-  });
-  cookies.value = result;
-  // console.log(cookies.value);
-  navigateTo("/admin/dashboard")
+  try {
+    const result = await $fetch("http://127.0.0.1:8000/api/login", {
+      method: "POST",
+      body: {
+        email: form.value.email,
+        password: form.value.password,
+      },
+    });
+    cookies.value = result;
+    window.location.reload();
+    // console.log(cookies.value);
+  } catch (error) {
+    console.log(error.data)
+  }
 };
 </script>
 
@@ -35,7 +39,7 @@ const submitForm = async (event) => {
       <Logo />
       <h2 class="text-2xl font-bold text-black mb-4">Login</h2>
       <form class="flex flex-col" @submit.prevent="submitForm">
-        <!-- <div>
+        <div>
           <InputLabel for="email">Email</InputLabel>
           <TextInput id="email" placeholder="Email" v-model="form.email" />
         </div>
@@ -63,8 +67,7 @@ const submitForm = async (event) => {
               >Signup</a
             >
           </p>
-        </div> -->
-
+        </div>
         <PrimaryButton> Login </PrimaryButton>
       </form>
     </div>

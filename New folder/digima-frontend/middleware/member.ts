@@ -3,8 +3,4 @@ export default defineNuxtRouteMiddleware(() => {
   if (!cookie.value) {
     return navigateTo("/login");
   }
-
-  if (cookie.value.user.name === "member") {
-    return navigateTo("/errorpage");
-  }
 });
