@@ -1,12 +1,23 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 
+// Fetch user
+const cookies = useCookie("auth_user_token");
+const data = ref(null);
+
+const result = await $fetch("http://127.0.0.1:8000/api/user", {
+  headers: {
+    Authorization: `Bearer ${cookies.value.token}`,
+  },
+});
+data.value = result;
+
 // State to hold slots data and error
 const slots = ref([]);
 const error = ref(null);
 
 // Simulating the current user ID (for example purposes)
-const currentUserId = 2; // Replace with the actual current user ID
+const currentUserId = 1; // Replace with the actual current user ID
 
 // Fetch slots data from the API
 onMounted(async () => {

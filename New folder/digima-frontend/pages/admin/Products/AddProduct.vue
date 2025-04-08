@@ -31,6 +31,11 @@ const form = ref({
   item_pv: "",
   item_availability: "",
   bind_membership_id: "",
+  membership_id: "",
+  slot_qty: "",
+  code_user: "",
+  upgrade_own: "",
+  is_kit_upgrade: "",
 });
 
 const handleError = ref(null);
@@ -55,6 +60,11 @@ const submitForm = async (event) => {
         item_pv: form.value.item_pv,
         item_availability: form.value.item_availability,
         bind_membership_id: form.value.bind_membership_id,
+        membership_id: form.value.membership_id,
+        slot_qty: form.value.slot_qty,
+        code_user: form.value.code_user,
+        upgrade_own: form.value.upgrade_own,
+        is_kit_upgrade: form.value.is_kit_upgrade,
       },
     });
     // console.error(result);
@@ -79,12 +89,23 @@ const formattedCategories = ref([
   })),
 ]);
 
-const formattedMemberships = computed(() => {
-  return memberships.value.map((membership) => ({
+const formattedMemberships = ref([
+  { label: "None", value: null },
+  ...memberships.value.map((membership) => ({
     label: membership.membership_name,
     value: membership.membership_id,
-  }));
-});
+  })),
+]);
+
+const codeUser = ref([
+  { label: "Everyone", value: "everyone" },
+  { label: "Buyer Only", value: "buyer" },
+]);
+
+const upgradeAndKit = ref([
+  { label: "Yes", value: 1 },
+  { label: "No", value: 0 },
+]);
 </script>
 
 <template>
@@ -117,7 +138,7 @@ const formattedMemberships = computed(() => {
           </button>
         </div>
         <form @submit.prevent="submitForm">
-          <div class="flex">
+          <div class="flex space-x-4">
             <Card>
               <div class="space-y-4">
                 <div class="flex space-x-4">
@@ -164,9 +185,9 @@ const formattedMemberships = computed(() => {
                   </div>
                 </div>
 
-                <hr class="h-px bg-gray-200 border-0" />
+                <hr class="h-px bg-gray-200 border-0 hidden" />
 
-                <div class="space-x-10 items-center justify-between">
+                <div class="space-x-10 items-center justify-between hidden">
                   <div>
                     <InputLabel for="item_description">
                       Product Details</InputLabel
@@ -182,9 +203,9 @@ const formattedMemberships = computed(() => {
                   />
                 </div>
 
-                <hr class="h-px bg-gray-200 border-0" />
+                <hr class="h-px bg-gray-200 border-0 hidden" />
 
-                <div class="space-x-10 items-center justify-between">
+                <div class="space-x-10 items-center justify-between hidden">
                   <div>
                     <InputLabel for="item_inclusion_details">
                       Product Inclusion Details</InputLabel
@@ -341,10 +362,101 @@ const formattedMemberships = computed(() => {
               </div>
             </Card>
 
-            <!-- <div v-if="form.item_type === 'membership'"> -->
-              <!-- <div>
-              <Card> asd </Card>
-            </div> -->
+            <div v-if="form.item_type === 'membership'">
+              <Card>
+                <div class="space-y-4">
+                  <div class="flex space-x-4">
+                    <div class="space-x-10 items-center justify-between">
+                      <div>
+                        <InputLabel for="membership">Membership</InputLabel>
+                        <span class="font-medium text-sm text-gray-700"
+                          >Description</span
+                        >
+                      </div>
+                      <div>
+                        <Uselect
+                          id="membership"
+                          :options="formattedMemberships"
+                          v-model="form.membership_id"
+                          placeholder="Select a Membership"
+                        />
+                      </div>
+                    </div>
+
+                    <div class="space-x-10 items-center justify-between">
+                      <div>
+                        <InputLabel for="slotQuantity">Slot Quantity</InputLabel>
+                        <span class="font-medium text-sm text-gray-700"
+                          >Description</span
+                        >
+                      </div>
+                      <div>
+                        <TextInput
+                          id="slotQuantity"
+                          placeholder=""
+                          v-model="form.slot_qty"
+                        />
+                      </div>
+                    </div>
+
+                    <div class="space-x-10 items-center justify-between">
+                      <div>
+                        <InputLabel for="codeUser">Code User</InputLabel>
+                        <span class="font-medium text-sm text-gray-700"
+                          >Description</span
+                        >
+                      </div>
+                      <div>
+                        <Uselect
+                          id="codeUser"
+                          :options="codeUser"
+                          v-model="form.code_user"
+                          placeholder="Select a User"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr class="h-px bg-gray-200 border-0" />
+
+                  <div class="flex space-x-4">
+                    <div class="space-x-10 items-center justify-between">
+                      <div>
+                        <InputLabel for="upgrade">Upgrade</InputLabel>
+                        <span class="font-medium text-sm text-gray-700"
+                          >Description</span
+                        >
+                      </div>
+                      <div>
+                        <Uselect
+                          id="upgrade"
+                          :options="upgradeAndKit"
+                          v-model="form.upgrade_own"
+                          placeholder=""
+                        />
+                      </div>
+                    </div>
+
+                    <div class="space-x-10 items-center justify-between">
+                      <div>
+                        <InputLabel for="kitUpgrade">Use Kit To Upgrade Membership</InputLabel>
+                        <span class="font-medium text-sm text-gray-700"
+                          >Description</span
+                        >
+                      </div>
+                      <div>
+                        <Uselect
+                          id="kitUpgrade"
+                          :options="upgradeAndKit"
+                          v-model="form.is_kit_upgrade"
+                          placeholder=""
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </form>
       </div>

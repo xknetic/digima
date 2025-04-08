@@ -13,7 +13,8 @@ class ProductSubcategoryController extends Controller
     public function index()
     {
         //
-        return response()->json("Product Sub Category Index");
+        $subCategories = ProductSubcategory::all();
+        return response()->json($subCategories);
     }
 
     /**

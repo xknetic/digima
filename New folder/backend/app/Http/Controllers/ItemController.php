@@ -15,7 +15,7 @@ class ItemController extends Controller
     public function index()
     {
         //
-        $items = Item::all();
+        $items = Item::with(['memberships', 'categories', 'subcategories'])->get();
         return response()->json($items);
     }
 
