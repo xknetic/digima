@@ -10,45 +10,70 @@ const cookies = useCookie("auth_user_token");
 // Fetching the API
 const { data: items } = await useFetch("http://127.0.0.1:8000/api/Items");
 
-const count = ref(0);
-
-function increment() {
-  count.value++;
-}
-
-function decrement() {
-  count.value--;
-}
-
-const storedItemIds = ref([]);
-
-const fetchStoredItemIds = () => {
-  const savedItemIds = JSON.parse(localStorage.getItem("item_ids")) || [];
-  storedItemIds.value = savedItemIds;
-};
-
-onMounted(fetchStoredItemIds);
-
 const getItem = (id) => {
   return items.value ? items.value.find((item) => item.item_id === id) : null;
 };
 
-// Function to delete an item ID from localStorage
-const deleteItemFromLocalStorage = (id) => {
-  // Remove the item ID from the storedItemIds array
-  storedItemIds.value = storedItemIds.value.filter((itemId) => itemId !== id);
+const cartData = ref([]);
 
-  // Update localStorage with the new list of item IDs
-  localStorage.setItem("item_ids", JSON.stringify(storedItemIds.value));
+onMounted(() => {
+  const itemStorage = localStorage.getItem("cart");
+  cartData.value = itemStorage ? JSON.parse(itemStorage) : [];
+});
+
+const increment = (index) => {
+  cartData.value[index].quantity++;
+  // console.log(cartData.value[index].quantity++)
+  // updateLocalStorage();
+  localStorage.setItem("cart", JSON.stringify(cartData.value));
 };
 
-const submitForm = async (event) => {
-  event.preventDefault();
+const decrement = (index) => {
+  if (cartData.value[index].quantity > 1) {
+    cartData.value[index].quantity--;
+    // updateLocalStorage();
+    localStorage.setItem("cart", JSON.stringify(cartData.value));
+  }
+};
 
-  if (!cookies) {
-    console.log("success");
-  } else {
-    console.log("failed");
+const subtotal = computed(() => {
+  const total = cartData.value.reduce((sum, item) => {
+    const product = getItem(item.item_id);
+    return sum + (product?.item_price || 0) * item.quantity;
+  }, 0);
+
+  return Math.round(total * 100) / 100;
+});
+
+const deleteItemFromLocalStorage = (itemId) => {
+  const storedItems = JSON.parse(localStorage.getItem("cart")) || [];
+
+  const updatedItems = storedItems.filter((item) => item.item_id !== itemId);
+
+  localStorage.setItem("cart", JSON.stringify(updatedItems));
+
+  cartData.value = updatedItems; // update UI
+};
+
+const submitForm = async () => {
+  try {
+    for (const item of cartData.value) {
+      const form = {
+        item_id: item.item_id,
+        cart_quantity: item.quantity,
+        slot_id: 1,
+      };
+
+      const result = await $fetch("http://127.0.0.1:8000/api/Carts", {
+        method: "POST",
+        body: form,
+      });
+
+      console.log("Submitted:", result);
+      localStorage.clear();
+    }
+  } catch (error) {
+    console.error("Submission failed:", error);
   }
 };
 </script>
@@ -56,121 +81,184 @@ const submitForm = async (event) => {
 <template>
   <!-- <div>
     <ul>
-      <li v-for="(id, index) in storedItemIds" :key="index">
+      <li v-for="(itemData, index) in cartData" :key="index">
         <div >
-          <p>Name: {{ getItem(id).item_sku }}</p>
-          <p>Description: {{ getItem(id).categories.category_name }}</p>
+          <p>Name: {{ getItem(itemData.item_id)?.item_sku }}</p>
+          <p>Description: {{ getItem(itemData.item_id)?.categories?.category_name }}</p>
           <button @click="deleteItemFromLocalStorage(id)">Delete</button>
+          <p>Description: {{ itemData.quantity }}</p>
         </div>
       </li>
     </ul>
   </div> -->
   <div class="space-y-20">
-    <div class="flex justify-center space-x-10">
-      <!-- Main -->
-      <main class="">
-        <p class="text-2xl font-medium">Cart</p>
-        <div v-for="(id, index) in storedItemIds" :key="index">
-          <div class="space-y-2">
-            <div class="flex justify-between space-x-2 gap-40">
-              <div class="flex space-x-2">
-                <Logo class="w-auto h-40" />
-                <!-- Short Description -->
-                <div>
-                  <p href="" class="text-base font-semibold">
-                    {{ getItem(id).item_sku }}
-                  </p>
-                  <div v-if="getItem(id).categories.category_name">
-                    <p class="text-md font-base text-gray-500">
-                      {{ getItem(id).categories.category_name }}
-                      <span v-if="getItem(id).subcategories?.sub_category_name">
-                        > {{ getItem(id).subcategories?.sub_category_name }}
-                      </span>
+    <div v-if="cartData[0]">
+      <div class="flex justify-center space-x-10">
+        <!-- Main -->
+        <main class="">
+          <p class="text-2xl font-medium">Cart</p>
+          <div v-for="(itemData, index) in cartData" :key="index">
+            <div class="space-y-2">
+              <div class="flex justify-between space-x-2 gap-40">
+                <div class="flex space-x-2">
+                  <Logo class="w-auto h-40" />
+                  <!-- Short Description -->
+                  <div>
+                    <p href="" class="text-base font-semibold">
+                      {{ getItem(itemData.item_id)?.item_sku }}
                     </p>
-                  </div>
-                  <div v-else>
-                    <p class="text-md font-base text-gray-500">--</p>
+                    <div
+                      v-if="
+                        getItem(itemData.item_id)?.categories?.category_name
+                      "
+                    >
+                      <p class="text-md font-base text-gray-500">
+                        {{
+                          getItem(itemData.item_id)?.categories.category_name
+                        }}
+                        <span
+                          v-if="
+                            getItem(itemData.item_id)?.subcategories
+                              ?.sub_category_name
+                          "
+                        >
+                          >
+                          {{
+                            getItem(itemData.item_id)?.subcategories
+                              ?.sub_category_name
+                          }}
+                        </span>
+                      </p>
+                    </div>
+                    <div v-else>
+                      <p class="text-md font-base text-gray-500">--</p>
+                    </div>
                   </div>
                 </div>
+                <p class="text-md font-medium">
+                  ₱ {{ getItem(itemData.item_id)?.item_price }}
+                </p>
               </div>
-              <p class="text-md font-medium">₱ {{ getItem(id).item_price }}</p>
+              <!-- Quantity Buttons -->
+              <div
+                class="space-x-3 border border-gray-300 rounded-full flex items-center w-max"
+              >
+                <div v-if="itemData.quantity != 1">
+                  <span>
+                    <button
+                      class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
+                      @click="decrement(index)"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M5 12h14"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                </div>
+                <div v-else>
+                  <span>
+                    <button
+                      class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
+                      @click="deleteItemFromLocalStorage(itemData.item_id)"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-5"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                </div>
+
+                <span> {{ itemData.quantity }} </span>
+
+                <div>
+                  <button
+                    class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
+                    @click="increment(index)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="size-5"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 4.5v15m7.5-7.5h-15"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <hr class="h-px w-full bg-slate-200 border-0" />
             </div>
-            <!-- Quantity Buttons -->
-            <span
-              class="space-x-3 border border-gray-300 rounded-full flex items-center"
-            >
-              <span>
-                <button
-                  class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
-                  @click="decrement"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    class="bi bi-dash"
-                    viewBox="0 0 16 16"
-                  >
-                    <path
-                      d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"
-                    />
-                  </svg>
-                </button>
-              </span>
+          </div>
 
-              <span> {{ count ? count : "" }} </span>
+          <!--  -->
+        </main>
 
-              <div>
-                <button
-                  class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
-                  @click="increment"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    class="bi bi-plus"
-                    viewBox="0 0 16 16"
-                  >
-                    <path
-                      d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </span>
-
+        <!-- Sidebar -->
+        <aside class="w-[25vw]">
+          <div class="space-y-2">
+            <p class="text-2xl font-medium">Summary</p>
+            <div class="flex justify-between">
+              <p class="text-lg font-medium">Subtotal</p>
+              <p class="text-md font-base">₱ {{ subtotal }}</p>
+            </div>
+            <div class="flex justify-between">
+              <p class="text-lg font-medium">Shipping Fee</p>
+              <p class="text-md font-base">₱ 85.00</p>
+            </div>
             <hr class="h-px w-full bg-slate-200 border-0" />
-          </div>
-        </div>
+            <div class="flex justify-between">
+              <p class="text-lg font-medium">Total</p>
+              <p class="text-md font-base">₱ 585.00</p>
+            </div>
+            <hr class="h-px w-full bg-slate-200 border-0" />
 
-        <!--  -->
-      </main>
+            <div v-if="cookies">
+              <PrimaryButton @click="submitForm">Checkout</PrimaryButton>
+            </div>
+            <div v-else class="space-y-2">
+              <PrimaryButton>Guest Checkout</PrimaryButton>
+              <NuxtLink to="/login">
+                <PrimaryButton>Member Checkout</PrimaryButton>
+              </NuxtLink>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
 
-      <!-- Sidebar -->
-      <aside class="w-[25vw]">
-        <div class="space-y-2">
-          <p class="text-2xl font-medium">Summary</p>
-          <div class="flex justify-between">
-            <p class="text-lg font-medium">Subtotal</p>
-            <p class="text-md font-base">₱ 500.00</p>
-          </div>
-          <div class="flex justify-between">
-            <p class="text-lg font-medium">Shipping Fee</p>
-            <p class="text-md font-base">₱ 85.00</p>
-          </div>
-          <hr class="h-px w-full bg-slate-200 border-0" />
-          <div class="flex justify-between">
-            <p class="text-lg font-medium">Total</p>
-            <p class="text-md font-base">₱ 585.00</p>
-          </div>
-          <hr class="h-px w-full bg-slate-200 border-0" />
-          <PrimaryButton>Guest Checkout</PrimaryButton>
-          <PrimaryButton @click="submitForm">Member Checkout</PrimaryButton>
-        </div>
-      </aside>
+    <div v-else>
+      <div class="flex justify-center items-center my-50">
+        <h1>You Don't Have Any Items In Your Cart</h1>
+      </div>
     </div>
 
     <!-- You Might Also Like -->

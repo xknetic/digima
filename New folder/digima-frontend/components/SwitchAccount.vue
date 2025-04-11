@@ -14,10 +14,6 @@ data.value = result;
 
 // State to hold slots data and error
 const slots = ref([]);
-const error = ref(null);
-
-// Simulating the current user ID (for example purposes)
-const currentUserId = 1; // Replace with the actual current user ID
 
 // Fetch slots data from the API
 onMounted(async () => {
@@ -32,8 +28,11 @@ onMounted(async () => {
     const parsedSlotData = JSON.parse(storedSlotData);
     selectedSlot.value = parsedSlotData.slot_id;
   } else {
-    // Set default slot_id to 1 if no slot is selected
-    selectedSlot.value = "";
+    // Wait for slots to be fetched before submitting
+    const defaultSlot = slots.value.find(slot => slot.slot_id === 1);
+    if (defaultSlot) {
+      localStorage.setItem("selectedSlotData", JSON.stringify(defaultSlot));
+    }
   }
 });
 
@@ -58,7 +57,7 @@ const handleSubmit = () => {
 
 // Filter the slots to get the ones corresponding to the current user
 const userFilter = computed(() => {
-  return slots.value.filter((slot) => slot.slot_user_id === currentUserId);
+  return slots.value.filter((slot) => slot.slot_user_id === result.id);
 });
 
 // Get the selected slot based on slot_id (from localStorage)

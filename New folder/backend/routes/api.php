@@ -2,8 +2,11 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CodeController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\SlotController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\MemberListController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\RewardItemController;
@@ -11,8 +14,6 @@ use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductSubcategoryController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\CodeController;
-use App\Http\Controllers\InventoryController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
@@ -36,3 +37,4 @@ Route::apiResource('Items', ItemController::class);
 Route::apiResource('RewardItems', RewardItemController::class);
 Route::apiResource('Codes', CodeController::class);
 Route::apiResource('Inventories', InventoryController::class);
+Route::apiResource('Carts', CartController::class);
