@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('carts', function (Blueprint $table) {
             $table->id("cart_id");
-            $table->double("cart_quantity");
+            $table->integer("cart_quantity");
             $table->unsignedBigInteger("item_id");
             $table->foreign('item_id')->references('item_id')->on('items')->onDelete('cascade');
             $table->unsignedBigInteger("slot_id");

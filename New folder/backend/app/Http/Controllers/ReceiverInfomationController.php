@@ -13,6 +13,8 @@ class ReceiverInfomationController extends Controller
     public function index()
     {
         //
+        $receiverinfomations = ReceiverInfomation::all();
+        return response()->json($receiverinfomations);
     }
 
     /**

@@ -9,6 +9,7 @@ const cookies = useCookie("auth_user_token");
 
 // Fetching the API
 const { data: items } = await useFetch("http://127.0.0.1:8000/api/Items");
+const { data: carts } = await useFetch("http://127.0.0.1:8000/api/Carts");
 
 const getItem = (id) => {
   return items.value ? items.value.find((item) => item.item_id === id) : null;
@@ -21,50 +22,103 @@ onMounted(() => {
   cartData.value = itemStorage ? JSON.parse(itemStorage) : [];
 });
 
-const increment = (index) => {
-  cartData.value[index].quantity++;
-  // console.log(cartData.value[index].quantity++)
+const increment = async (itemData, index) => {
+  cartData.value[index].cart_quantity++;
   // updateLocalStorage();
   localStorage.setItem("cart", JSON.stringify(cartData.value));
+
+  const getCartId = computed(() => {
+    return carts.value.find((cart) => {
+      return (
+        cart.item_id === itemData.item_id && cart.slot_id === itemData.slot_id
+      );
+    });
+  });
+
+  const result = await $fetch(
+    `http://127.0.0.1:8000/api/Carts/${getCartId.value.cart_id}`,
+    {
+      method: "PUT",
+      body: {
+        cart_quantity: cartData.value[index].cart_quantity,
+      },
+    }
+  );
 };
 
-const decrement = (index) => {
-  if (cartData.value[index].quantity > 1) {
-    cartData.value[index].quantity--;
+const decrement = async (itemData, index) => {
+  if (cartData.value[index].cart_quantity > 1) {
+    cartData.value[index].cart_quantity--;
     // updateLocalStorage();
     localStorage.setItem("cart", JSON.stringify(cartData.value));
+
+    const getCartId = computed(() => {
+      return carts.value.find((cart) => {
+        return (
+          cart.item_id === itemData.item_id && cart.slot_id === itemData.slot_id
+        );
+      });
+    });
+
+    const result = await $fetch(
+      `http://127.0.0.1:8000/api/Carts/${getCartId.value.cart_id}`,
+      {
+        method: "PUT",
+        body: {
+          cart_quantity: cartData.value[index].cart_quantity,
+        },
+      }
+    );
   }
 };
 
-const subtotal = computed(() => {
+const subtotalAllItems = computed(() => {
   const total = cartData.value.reduce((sum, item) => {
     const product = getItem(item.item_id);
-    return sum + (product?.item_price || 0) * item.quantity;
+    return sum + (product?.item_price || 0) * item.cart_quantity;
   }, 0);
 
   return Math.round(total * 100) / 100;
 });
 
-const deleteItemFromLocalStorage = (itemId) => {
+const deleteItemFromLocalStorage = async (itemData, itemId) => {
   const storedItems = JSON.parse(localStorage.getItem("cart")) || [];
 
   const updatedItems = storedItems.filter((item) => item.item_id !== itemId);
 
   localStorage.setItem("cart", JSON.stringify(updatedItems));
 
-  cartData.value = updatedItems; // update UI
+  cartData.value = updatedItems;
+
+  const getCartId = computed(() => {
+    return carts.value.find((cart) => {
+      return (
+        cart.item_id === itemData.item_id && cart.slot_id === itemData.slot_id
+      );
+    });
+  });
+
+  const result = await $fetch(
+    `http://127.0.0.1:8000/api/Carts/${getCartId.value.cart_id}`,
+    {
+      method: "DELETE",
+    }
+  );
 };
 
 const submitForm = async () => {
   try {
     for (const item of cartData.value) {
+      const getItem = items.value.find((item) => item.item_id === item.item_id);
+      const subtotalPerItem = item.cart_quantity * getItem.item_price;
+
       const form = {
         item_id: item.item_id,
-        cart_quantity: item.quantity,
-        slot_id: 1,
+        quantity: item.cart_quantity,
+        order_item_subtotal: subtotalPerItem,
       };
 
-      const result = await $fetch("http://127.0.0.1:8000/api/Carts", {
+      const result = await $fetch("http://127.0.0.1:8000/api/OrderItems", {
         method: "POST",
         body: form,
       });
@@ -143,11 +197,11 @@ const submitForm = async () => {
               <div
                 class="space-x-3 border border-gray-300 rounded-full flex items-center w-max"
               >
-                <div v-if="itemData.quantity != 1">
+                <div v-if="itemData.cart_quantity != 1">
                   <span>
                     <button
                       class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
-                      @click="decrement(index)"
+                      @click="decrement(itemData, index)"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -170,7 +224,9 @@ const submitForm = async () => {
                   <span>
                     <button
                       class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
-                      @click="deleteItemFromLocalStorage(itemData.item_id)"
+                      @click="
+                        deleteItemFromLocalStorage(itemData, itemData.item_id)
+                      "
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -190,12 +246,12 @@ const submitForm = async () => {
                   </span>
                 </div>
 
-                <span> {{ itemData.quantity }} </span>
+                <span> {{ itemData.cart_quantity }} </span>
 
                 <div>
                   <button
                     class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
-                    @click="increment(index)"
+                    @click="increment(itemData, index)"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -228,7 +284,7 @@ const submitForm = async () => {
             <p class="text-2xl font-medium">Summary</p>
             <div class="flex justify-between">
               <p class="text-lg font-medium">Subtotal</p>
-              <p class="text-md font-base">₱ {{ subtotal }}</p>
+              <p class="text-md font-base">₱ {{ subtotalAllItems }}</p>
             </div>
             <div class="flex justify-between">
               <p class="text-lg font-medium">Shipping Fee</p>
@@ -242,13 +298,21 @@ const submitForm = async () => {
             <hr class="h-px w-full bg-slate-200 border-0" />
 
             <div v-if="cookies">
-              <PrimaryButton @click="submitForm">Checkout</PrimaryButton>
+              <NuxtLink to="/checkout">
+                <PrimaryButton>Checkout</PrimaryButton>
+              </NuxtLink>
             </div>
             <div v-else class="space-y-2">
-              <PrimaryButton>Guest Checkout</PrimaryButton>
-              <NuxtLink to="/login">
-                <PrimaryButton>Member Checkout</PrimaryButton>
-              </NuxtLink>
+              <div>
+                <NuxtLink to="/checkout">
+                  <PrimaryButton>Guest Checkout</PrimaryButton>
+                </NuxtLink>
+              </div>
+              <div>
+                <NuxtLink to="/login">
+                  <PrimaryButton>Member Checkout</PrimaryButton>
+                </NuxtLink>
+              </div>
             </div>
           </div>
         </aside>

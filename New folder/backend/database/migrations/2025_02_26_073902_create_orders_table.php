@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id("order_id");
-            $table->string("items");
+            // $table->string("items");
             $table->string("delivery_method");
             $table->integer("delivery_charge");
             $table->double("subtotal");

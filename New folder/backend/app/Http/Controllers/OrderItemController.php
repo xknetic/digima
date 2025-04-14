@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OrderItem;
+use App\Models\OrderItems;
 use Illuminate\Http\Request;
 
 class OrderItemController extends Controller
@@ -13,6 +13,8 @@ class OrderItemController extends Controller
     public function index()
     {
         //
+        $orderItems = OrderItems::with(['items', ])->get();
+        return response()->json($orderItems);
     }
 
     /**
@@ -29,12 +31,19 @@ class OrderItemController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate([
+            // Database Table
+        ]);
+
+        OrderItems::create($request->all());
+
+        return response()->json("Cart Created");
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(OrderItem $orderItem)
+    public function show(OrderItems $orderItems)
     {
         //
     }
@@ -42,7 +51,7 @@ class OrderItemController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(OrderItem $orderItem)
+    public function edit(OrderItems $orderItems)
     {
         //
     }
@@ -50,7 +59,7 @@ class OrderItemController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, OrderItem $orderItem)
+    public function update(Request $request, OrderItems $orderItems)
     {
         //
     }
@@ -58,7 +67,7 @@ class OrderItemController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(OrderItem $orderItem)
+    public function destroy(OrderItems $orderItems)
     {
         //
     }

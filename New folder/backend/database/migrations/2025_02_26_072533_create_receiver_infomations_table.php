@@ -13,9 +13,14 @@ return new class extends Migration
     {
         Schema::create('receiver_infomations', function (Blueprint $table) {
             $table->id("receiver_id");
-            $table->string("receiver_name");
+            $table->string("receiver_first_name");
+            $table->string("receiver_last_name");
             $table->string("receiver_contact");
-            $table->string("receiver_email");
+            $table->string("receiver_address");
+            $table->string("receiver_barangay");
+            $table->string("receiver_city");
+            $table->string("receiver_province");
+            $table->integer("receiver_postal");
         });
     }
 
