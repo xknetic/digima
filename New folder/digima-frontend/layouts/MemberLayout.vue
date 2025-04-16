@@ -34,6 +34,8 @@ const logout = async (event) => {
     },
   });
   cookies.value = null;
+  localStorage.removeItem('slots');
+  localStorage.removeItem('cart');
   window.location.reload();
 };
 </script>

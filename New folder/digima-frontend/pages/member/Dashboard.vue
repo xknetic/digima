@@ -10,15 +10,13 @@ definePageMeta({
 });
 
 // Fetching the API
-const { data: slots } = await useFetch("http://127.0.0.1:8000/api/Slots");
 
 // Get the Selected accounts based on slot_id
-const selectedSlotData = ref(null);
-
+const selectedSlot = ref(null);
 onMounted(() => {
-  const storedSlotData = localStorage.getItem("selectedSlotData");
-  if (storedSlotData) {
-    selectedSlotData.value = JSON.parse(storedSlotData); // Parse the data
+  const slots = localStorage.getItem("slots");
+  if (slots) {
+    selectedSlot.value = JSON.parse(slots); // Parse the data
   }
 });
 
@@ -39,32 +37,32 @@ const showAddMember = ref(false);
             <div class="text-md font-medium">
               <span class="font-bold"
                 >{{
-                  selectedSlotData ? selectedSlotData.users.first_name : "--"
+                  selectedSlot ? selectedSlot.users.first_name : "--"
                 }}
                 {{
-                  selectedSlotData ? selectedSlotData.users.middle_name : "--"
+                  selectedSlot ? selectedSlot.users.middle_name : "--"
                 }}
                 {{
-                  selectedSlotData ? selectedSlotData.users.last_name : "--"
+                  selectedSlot ? selectedSlot.users.last_name : "--"
                 }}</span
               >
               <p>
                 Username:
-                {{ selectedSlotData ? selectedSlotData.slot_username : "--" }}
+                {{ selectedSlot ? selectedSlot.slot_username : "--" }}
               </p>
               <p>
                 Package:
                 {{
-                  selectedSlotData && selectedSlotData.memberships
-                    ? selectedSlotData.memberships.membership_name || "--"
+                  selectedSlot && selectedSlot.memberships
+                    ? selectedSlot.memberships.membership_name || "--"
                     : "--"
                 }}
               </p>
               <p>
                 Sponsor Username:
                 {{
-                  selectedSlotData && selectedSlotData.sponsor_info
-                    ? selectedSlotData.sponsor_info.slot_username || "--"
+                  selectedSlot && selectedSlot.sponsor_info
+                    ? selectedSlot.sponsor_info.slot_username || "--"
                     : "--"
                 }}
               </p>

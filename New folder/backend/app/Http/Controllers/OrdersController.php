@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OrderItems;
 use App\Models\Orders;
+use App\Models\ReceiverInfomation;
 use Illuminate\Http\Request;
 
 class OrdersController extends Controller
@@ -29,6 +31,41 @@ class OrdersController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate([]);
+        $receiverInfomations = $request->only([
+            'receiver_first_name',
+            'receiver_last_name',
+            'receiver_contact',
+            'receiver_address',
+            'receiver_barangay',
+            'receiver_city',
+            'receiver_province',
+            'receiver_postal',
+        ]);
+
+        $receiverInfomations = ReceiverInfomation::create($receiverInfomations);
+        
+        $orders = $request->only([
+            'receiver_id ',
+        ]);
+
+        $orders['receiver_id'] = $receiverInfomations->receiver_id;
+
+        $orders = Orders::create($orders);
+
+        $orderItems = $request->only([
+            'item_id',
+            'quantity',
+            'order_item_subtotal',
+            'order_item_price',
+            'order_id ',
+        ]);
+
+        $orderItems['order_id'] = $orders->order_id;
+
+        $orderItems = OrderItems::create($orderItems);
+
+        return response()->json(['message' => 'Order created successfully'], 200);
     }
 
     /**

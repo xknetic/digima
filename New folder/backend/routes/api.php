@@ -15,7 +15,7 @@ use App\Http\Controllers\ProductSubcategoryController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\OrderItemController;
-use App\Http\Controllers\ReceiverInfomationController;
+use App\Http\Controllers\OrdersController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
@@ -41,4 +41,4 @@ Route::apiResource('Codes', CodeController::class);
 Route::apiResource('Inventories', InventoryController::class);
 Route::apiResource('Carts', CartController::class);
 Route::apiResource('OrderItems', OrderItemController::class);
-Route::apiResource('Receivers', ReceiverInfomationController::class);
+Route::apiResource('Orders', OrdersController::class);

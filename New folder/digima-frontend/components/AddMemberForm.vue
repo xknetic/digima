@@ -18,12 +18,9 @@ const cookies = useCookie("auth_user_token");
 // Get the Selected accounts based on slot_id
 const selectedSlotData = ref(null);
 onMounted(() => {
-  const storedSlotData = localStorage.getItem("selectedSlotData");
-  if (storedSlotData) {
-    selectedSlotData.value = JSON.parse(storedSlotData); // Parse the data
-  }
-
-  if (selectedSlotData.value) {
+  const slots = localStorage.getItem("slots");
+  if (slots) {
+    selectedSlotData.value = JSON.parse(slots); // Parse the data
     form.value.slot_sponsor = selectedSlotData.value.slot_username;
   }
 });
@@ -70,7 +67,7 @@ const slotCodes = computed(() => {
     );
   });
   // Log to check what is returned
-  console.log(result);
+  // console.log(result);
   return result;
 });
 </script>

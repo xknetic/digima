@@ -106,33 +106,45 @@ const deleteItemFromLocalStorage = async (itemData, itemId) => {
   );
 };
 
-const submitForm = async () => {
+const form = ref({
+  receiver_first_name: "",
+  receiver_last_name: "",
+  receiver_contact: "",
+  receiver_address: "",
+  receiver_barangay: "",
+  receiver_city: "",
+  receiver_province: "",
+  receiver_postal: "",
+});
+
+const submitForm = async (event) => {
+  // event.preventDefault();
   try {
     for (const item of cartData.value) {
       const getItem = items.value.find((item) => item.item_id === item.item_id);
       const subtotalPerItem = item.cart_quantity * getItem.item_price;
 
-      const itemsForm = {
-        item_id: item.item_id,
-        quantity: item.cart_quantity,
-        order_item_subtotal: subtotalPerItem,
-        order_item_price: getItem.item_price,
-      };
-
-      const informationForm = {
-        item_id: item.item_id,
-        quantity: item.cart_quantity,
-        order_item_subtotal: subtotalPerItem,
-        order_item_price: getItem.item_price,
-      };
-
-      const result = await $fetch("http://127.0.0.1:8000/api/OrderItems", {
+      const result = await $fetch("http://127.0.0.1:8000/api/Orders", {
         method: "POST",
-        body: itemsForm,
+        body: {
+          receiver_first_name: form.value.receiver_first_name,
+          receiver_last_name: form.value.receiver_last_name,
+          receiver_contact: form.value.receiver_contact,
+          receiver_address: form.value.receiver_address,
+          receiver_barangay: form.value.receiver_barangay,
+          receiver_city: form.value.receiver_city,
+          receiver_province: form.value.receiver_province,
+          receiver_postal: form.value.receiver_postal,
+
+          item_id: item.item_id,
+          quantity: item.cart_quantity,
+          order_item_subtotal: subtotalPerItem,
+          order_item_price: getItem.item_price,
+        },
       });
 
       console.log("Submitted:", result);
-      localStorage.clear();
+      localStorage.removeItem('cart');
     }
   } catch (error) {
     console.error("Submission failed:", error);
@@ -152,44 +164,84 @@ const submitForm = async () => {
               <div>
                 <div class="flex space-x-10 items-center justify-between">
                   <div>
-                    <InputLabel for="first_name">First Name</InputLabel>
-                    <TextInput id="first_name" placeholder="" />
+                    <InputLabel for="receiver_first_name"
+                      >First Name</InputLabel
+                    >
+                    <TextInput
+                      id="receiver_first_name"
+                      placeholder=""
+                      v-model="form.receiver_first_name"
+                    />
                   </div>
                   <div>
-                    <InputLabel for="last_name">Last Name</InputLabel>
-                    <TextInput id="last_name" placeholder="" />
+                    <InputLabel for="receiver_last_name">Last Name</InputLabel>
+                    <TextInput
+                      id="receiver_last_name"
+                      placeholder=""
+                      v-model="form.receiver_last_name"
+                    />
                   </div>
                 </div>
 
                 <div>
-                  <InputLabel for="contact">Contacts</InputLabel>
-                  <TextInput id="contact" placeholder="" />
+                  <InputLabel for="receiver_contact">Contacts</InputLabel>
+                  <TextInput
+                    id="receiver_contact"
+                    placeholder=""
+                    v-model="form.receiver_contact"
+                  />
                 </div>
 
                 <div>
-                  <InputLabel for="address">Address</InputLabel>
-                  <TextInput id="address" placeholder="" />
+                  <InputLabel for="receiver_address">Address</InputLabel>
+                  <TextInput
+                    id="receiver_address"
+                    placeholder=""
+                    v-model="form.receiver_address"
+                  />
                 </div>
 
                 <div class="flex space-x-10 items-center justify-between">
                   <div>
-                    <InputLabel for="province">State/Province</InputLabel>
-                    <TextInput id="province" placeholder="" />
+                    <InputLabel for="receiver_province"
+                      >State/Province</InputLabel
+                    >
+                    <TextInput
+                      id="receiver_province"
+                      placeholder=""
+                      v-model="form.receiver_province"
+                    />
                   </div>
                   <div>
-                    <InputLabel for="city">City Municipality</InputLabel>
-                    <TextInput id="city" placeholder="" />
+                    <InputLabel for="receiver_city"
+                      >City Municipality</InputLabel
+                    >
+                    <TextInput
+                      id="receiver_city"
+                      placeholder=""
+                      v-model="form.receiver_city"
+                    />
                   </div>
                 </div>
 
                 <div class="flex space-x-10 items-center justify-between">
                   <div>
-                    <InputLabel for="postal">Postal Code</InputLabel>
-                    <TextInput id="postal" placeholder="" />
+                    <InputLabel for="receiver_postal">Postal Code</InputLabel>
+                    <TextInput
+                      id="receiver_postal"
+                      placeholder=""
+                      v-model="form.receiver_postal"
+                    />
                   </div>
                   <div>
-                    <InputLabel for="barangay">Barangay/District</InputLabel>
-                    <TextInput id="barangay" placeholder="" />
+                    <InputLabel for="receiver_barangay"
+                      >Barangay/District</InputLabel
+                    >
+                    <TextInput
+                      id="receiver_barangay"
+                      placeholder=""
+                      v-model="form.receiver_barangay"
+                    />
                   </div>
                 </div>
               </div>
@@ -210,7 +262,7 @@ const submitForm = async () => {
 
             <div class="flex justify-between">
               <p class="text-lg font-medium">Subtotal</p>
-              <p class="text-md font-base">₱</p>
+              <p class="text-md font-base">₱ {{ subtotalAllItems }}</p>
             </div>
 
             <div class="flex justify-between">

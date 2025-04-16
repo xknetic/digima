@@ -35,15 +35,26 @@ const increment = async (itemData, index) => {
     });
   });
 
-  const result = await $fetch(
-    `http://127.0.0.1:8000/api/Carts/${getCartId.value.cart_id}`,
-    {
-      method: "PUT",
+  if (getCartId.value) {
+    const result = await $fetch(
+      `http://127.0.0.1:8000/api/Carts/${getCartId.value.cart_id}`,
+      {
+        method: "PUT",
+        body: {
+          cart_quantity: cartData.value[index].cart_quantity,
+        },
+      }
+    );
+  } else {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    console.log(cart);
+    const result = await $fetch(`http://127.0.0.1:8000/api/Carts`, {
+      method: "POST",
       body: {
         cart_quantity: cartData.value[index].cart_quantity,
       },
-    }
-  );
+    });
+  }
 };
 
 const decrement = async (itemData, index) => {
@@ -105,31 +116,6 @@ const deleteItemFromLocalStorage = async (itemData, itemId) => {
     }
   );
 };
-
-const submitForm = async () => {
-  try {
-    for (const item of cartData.value) {
-      const getItem = items.value.find((item) => item.item_id === item.item_id);
-      const subtotalPerItem = item.cart_quantity * getItem.item_price;
-
-      const form = {
-        item_id: item.item_id,
-        quantity: item.cart_quantity,
-        order_item_subtotal: subtotalPerItem,
-      };
-
-      const result = await $fetch("http://127.0.0.1:8000/api/OrderItems", {
-        method: "POST",
-        body: form,
-      });
-
-      console.log("Submitted:", result);
-      localStorage.clear();
-    }
-  } catch (error) {
-    console.error("Submission failed:", error);
-  }
-};
 </script>
 
 <template>
@@ -151,57 +137,108 @@ const submitForm = async () => {
         <!-- Main -->
         <main class="">
           <p class="text-2xl font-medium">Cart</p>
-          <div v-for="(itemData, index) in cartData" :key="index">
-            <div class="space-y-2">
-              <div class="flex justify-between space-x-2 gap-40">
-                <div class="flex space-x-2">
-                  <Logo class="w-auto h-40" />
-                  <!-- Short Description -->
-                  <div>
-                    <p href="" class="text-base font-semibold">
-                      {{ getItem(itemData.item_id)?.item_sku }}
-                    </p>
-                    <div
-                      v-if="
-                        getItem(itemData.item_id)?.categories?.category_name
-                      "
-                    >
-                      <p class="text-md font-base text-gray-500">
-                        {{
-                          getItem(itemData.item_id)?.categories.category_name
-                        }}
-                        <span
-                          v-if="
-                            getItem(itemData.item_id)?.subcategories
-                              ?.sub_category_name
-                          "
-                        >
-                          >
-                          {{
-                            getItem(itemData.item_id)?.subcategories
-                              ?.sub_category_name
-                          }}
-                        </span>
+          <div v-if="cookies">
+            <div v-for="(itemData, index) in cartData" :key="index">
+              <div class="space-y-2">
+                <div class="flex justify-between space-x-2 gap-40">
+                  <div class="flex space-x-2">
+                    <Logo class="w-auto h-40" />
+                    <!-- Short Description -->
+                    <div>
+                      <p href="" class="text-base font-semibold">
+                        {{ getItem(itemData.item_id)?.item_sku }}
                       </p>
-                    </div>
-                    <div v-else>
-                      <p class="text-md font-base text-gray-500">--</p>
+                      <div
+                        v-if="
+                          getItem(itemData.item_id)?.categories?.category_name
+                        "
+                      >
+                        <p class="text-md font-base text-gray-500">
+                          {{
+                            getItem(itemData.item_id)?.categories.category_name
+                          }}
+                          <span
+                            v-if="
+                              getItem(itemData.item_id)?.subcategories
+                                ?.sub_category_name
+                            "
+                          >
+                            >
+                            {{
+                              getItem(itemData.item_id)?.subcategories
+                                ?.sub_category_name
+                            }}
+                          </span>
+                        </p>
+                      </div>
+                      <div v-else>
+                        <p class="text-md font-base text-gray-500">--</p>
+                      </div>
                     </div>
                   </div>
+                  <p class="text-md font-medium">
+                    ₱ {{ getItem(itemData.item_id)?.item_price }}
+                  </p>
                 </div>
-                <p class="text-md font-medium">
-                  ₱ {{ getItem(itemData.item_id)?.item_price }}
-                </p>
-              </div>
-              <!-- Quantity Buttons -->
-              <div
-                class="space-x-3 border border-gray-300 rounded-full flex items-center w-max"
-              >
-                <div v-if="itemData.cart_quantity != 1">
-                  <span>
+                <!-- Quantity Buttons -->
+                <div
+                  class="space-x-3 border border-gray-300 rounded-full flex items-center w-max"
+                >
+                  <div v-if="itemData.cart_quantity != 1">
+                    <span>
+                      <button
+                        class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
+                        @click="decrement(itemData, index)"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="size-5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M5 12h14"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  </div>
+                  <div v-else>
+                    <span>
+                      <button
+                        class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
+                        @click="
+                          deleteItemFromLocalStorage(itemData, itemData.item_id)
+                        "
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="size-5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  </div>
+
+                  <span> {{ itemData.cart_quantity }} </span>
+
+                  <div>
                     <button
                       class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
-                      @click="decrement(itemData, index)"
+                      @click="increment(itemData, index)"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -214,19 +251,119 @@ const submitForm = async () => {
                         <path
                           stroke-linecap="round"
                           stroke-linejoin="round"
-                          d="M5 12h14"
+                          d="M12 4.5v15m7.5-7.5h-15"
                         />
                       </svg>
                     </button>
-                  </span>
+                  </div>
                 </div>
-                <div v-else>
-                  <span>
+
+                <hr class="h-px w-full bg-slate-200 border-0" />
+              </div>
+            </div>
+          </div>
+          <div v-else>
+            <div v-for="(itemData, index) in cartData" :key="index">
+              <div class="space-y-2">
+                <div class="flex justify-between space-x-2 gap-40">
+                  <div class="flex space-x-2">
+                    <Logo class="w-auto h-40" />
+                    <!-- Short Description -->
+                    <div>
+                      <p href="" class="text-base font-semibold">
+                        {{ getItem(itemData.item_id)?.item_sku }}
+                      </p>
+                      <div
+                        v-if="
+                          getItem(itemData.item_id)?.categories?.category_name
+                        "
+                      >
+                        <p class="text-md font-base text-gray-500">
+                          {{
+                            getItem(itemData.item_id)?.categories.category_name
+                          }}
+                          <span
+                            v-if="
+                              getItem(itemData.item_id)?.subcategories
+                                ?.sub_category_name
+                            "
+                          >
+                            >
+                            {{
+                              getItem(itemData.item_id)?.subcategories
+                                ?.sub_category_name
+                            }}
+                          </span>
+                        </p>
+                      </div>
+                      <div v-else>
+                        <p class="text-md font-base text-gray-500">--</p>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="text-md font-medium">
+                    ₱ {{ getItem(itemData.item_id)?.item_price }}
+                  </p>
+                </div>
+                <!-- Quantity Buttons -->
+                <div
+                  class="space-x-3 border border-gray-300 rounded-full flex items-center w-max"
+                >
+                  <div v-if="itemData.cart_quantity != 1">
+                    <span>
+                      <button
+                        class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
+                        @click="decrement(itemData, index)"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="size-5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M5 12h14"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  </div>
+                  <div v-else>
+                    <span>
+                      <button
+                        class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
+                        @click="
+                          deleteItemFromLocalStorage(itemData, itemData.item_id)
+                        "
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="size-5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  </div>
+
+                  <span> {{ itemData.cart_quantity }} </span>
+
+                  <div>
                     <button
                       class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
-                      @click="
-                        deleteItemFromLocalStorage(itemData, itemData.item_id)
-                      "
+                      @click="increment(itemData, index)"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -239,39 +376,15 @@ const submitForm = async () => {
                         <path
                           stroke-linecap="round"
                           stroke-linejoin="round"
-                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                          d="M12 4.5v15m7.5-7.5h-15"
                         />
                       </svg>
                     </button>
-                  </span>
+                  </div>
                 </div>
 
-                <span> {{ itemData.cart_quantity }} </span>
-
-                <div>
-                  <button
-                    class="cursor-pointer rounded-full p-2 hover:bg-gray-200"
-                    @click="increment(itemData, index)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="size-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 4.5v15m7.5-7.5h-15"
-                      />
-                    </svg>
-                  </button>
-                </div>
+                <hr class="h-px w-full bg-slate-200 border-0" />
               </div>
-
-              <hr class="h-px w-full bg-slate-200 border-0" />
             </div>
           </div>
 

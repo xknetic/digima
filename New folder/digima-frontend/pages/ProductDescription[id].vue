@@ -10,17 +10,31 @@ const route = useRoute();
 // Fetching the API
 const { data: items } = await useFetch("http://127.0.0.1:8000/api/Items");
 const { data: slots } = await useFetch("http://127.0.0.1:8000/api/Slots");
+const { data: carts } = await useFetch("http://127.0.0.1:8000/api/Carts");
+const cookies = useCookie("auth_user_token");
+
+const data = ref(null);
+const handleError = ref(null);
 
 const getItem = items.value.filter((item) => item.item_id == route.params.id);
 
-const handleError = ref(null);
+const slotName = ref(null);
+if (cookies.value) {
+  const result = await $fetch("http://127.0.0.1:8000/api/user", {
+    headers: {
+      Authorization: `Bearer ${cookies.value.token}`,
+    },
+  });
+  data.value = result;
 
-const slotName = computed(() => {
-  return (
-    slots.value?.find((slot) => !slot.slot_username.includes("-"))?.slot_id ||
-    null
+  const getUser = slots.value.filter(
+    (slot) => slot.slot_user_id == data.value.id
   );
-});
+
+  const foundSlot = getUser.find((slot) => !slot.slot_username.includes("-"));
+
+  slotName.value = foundSlot ? foundSlot.slot_id : null;
+}
 
 // console.log(slotName.value);
 
@@ -39,12 +53,23 @@ const submitForm = async (event) => {
     const itemInCart = cart.find((item) => item.item_id == form.value.item_id);
 
     if (itemInCart) {
+      const cartId = carts.value.find(
+        (cart) => cart.item_id == itemInCart.item_id
+      );
+
       itemInCart.cart_quantity += form.value.cart_quantity;
 
-      const result = await $fetch("http://127.0.0.1:8000/api/Carts/28", {
-        method: "PUT",
-        body: {cart_quantity: itemInCart.cart_quantity},
-      });
+      const result = await $fetch(
+        `http://127.0.0.1:8000/api/Carts/${cartId.cart_id}`,
+        {
+          method: "PUT",
+          body: {
+            item_id: itemInCart.item_id,
+            cart_quantity: itemInCart.cart_quantity,
+            slot_id: itemInCart.slot_id,
+          },
+        }
+      );
     } else {
       cart.push({
         item_id: form.value.item_id,
@@ -52,19 +77,21 @@ const submitForm = async (event) => {
         slot_id: form.value.slot_id,
       });
 
-      const result = await $fetch("http://127.0.0.1:8000/api/Carts", {
-        method: "POST",
-        body: {
-          item_id: form.value.item_id,
-          cart_quantity: form.value.cart_quantity,
-          slot_id: form.value.slot_id,
-        },
-      });
+      if (slotName.value !== null) {
+        const result = await $fetch(`http://127.0.0.1:8000/api/Carts`, {
+          method: "POST",
+          body: {
+            item_id: form.value.item_id,
+            cart_quantity: form.value.cart_quantity,
+            slot_id: form.value.slot_id,
+          },
+        });
+      }
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
 
-    console.log("Form data saved to localStorage:", form.value);
+    // console.log("Form data saved to localStorage:", form.value);
   } catch (error) {
     handleError.value = "Error saving data to localStorage.";
     console.error("Error:", error);
