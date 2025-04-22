@@ -2,17 +2,28 @@
 // Layout
 definePageMeta({
   layout: "authenticated-layout",
-  path: "/admin/orders",
-  name: "Cashier",
+  path: "/admin/items",
+  name: "Item",
   middleware: "auth",
 });
 
+// Fetching the API
+const { data: items } = await useFetch("http://127.0.0.1:8000/api/Items");
+
+const itemsPerPage = 10;
+const {
+  currentPage,
+  totalPages,
+  paginatedItems,
+  secondPage,
+  nextPage,
+  prevPage,
+  firstPage,
+  lastPage,
+} = usePagination(items, itemsPerPage);
 </script>
 
 <template>
-  <CashierNavigation />
-  <OrdersNavigation />
-
   <div>
     <!-- Table -->
     <div class="w-full mx-auto rounded-sm mt-4">
@@ -23,23 +34,8 @@ definePageMeta({
               class="text-sm font-medium bg-gray-50 border border-slate-200"
             >
               <tr>
-                <th class="py-3 px-4 whitespace-normal">Order No.</th>
-                <th class="p-2 whitespace-normal">Ordered items</th>
-                <th class="p-2 whitespace-normal">Ordered Quantity</th>
-                <th class="p-2 whitespace-normal">Username</th>
-                <th class="p-2 whitespace-normal">Member Name</th>
-                <th class="p-2 whitespace-normal">Receiver's Name</th>
-                <th class="p-2 whitespace-normal">Receiver's Contact</th>
-                <th class="p-2 whitespace-normal">Receiver's Email</th>
-                <th class="p-2 whitespace-normal">Sponsor Username</th>
-                <th class="p-2 whitespace-normal">Sponsor Name</th>
-                <th class="p-2 whitespace-normal">Date Ordered</th>
-                <th class="p-2 whitespace-normal">Total</th>
-                <th class="p-2 whitespace-normal">Order Status</th>
-                <th class="p-2 whitespace-normal">Order Type</th>
-                <th class="p-2 whitespace-normal">Payment Method</th>
-                <th class="p-2 whitespace-normal">Address</th>
-                <th class="p-2 whitespace-normal">Claim Code</th>
+                <th class="py-3 px-4 whitespace-normal">Item Name</th>
+                <th class="py-3 px-4 whitespace-normal">Price</th>
                 <th class="p-2 whitespace-normal"></th>
               </tr>
             </thead>

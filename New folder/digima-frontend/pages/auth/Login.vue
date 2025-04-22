@@ -25,6 +25,7 @@ const submitForm = async (event) => {
       },
     });
     cookies.value = result;
+    localStorage.removeItem('cart');
     window.location.reload();
     // console.log(cookies.value);
   } catch (error) {
