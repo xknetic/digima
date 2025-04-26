@@ -13,6 +13,8 @@ class PaymentMethodController extends Controller
     public function index()
     {
         //
+        $paymentmethods = PaymentMethod::all();
+        return response()->json($paymentmethods);
     }
 
     /**
@@ -29,6 +31,12 @@ class PaymentMethodController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate([
+            // Database Table
+        ]);
+
+        PaymentMethod::create($request->all());
+        return response()->json("Payment Method Created");
     }
 
     /**
@@ -50,9 +58,19 @@ class PaymentMethodController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, PaymentMethod $paymentMethod)
+    public function update(Request $request, PaymentMethod $paymentMethod, $id)
     {
         //
+        $paymentMethod = PaymentMethod::findOrFail($id);
+
+        $request->validate([
+            // 'name' => 'required|string',
+            // 'email' => 'required|string',
+        ]);
+
+        $paymentMethod->update($request->all());
+
+        return response()->json($paymentMethod);
     }
 
     /**

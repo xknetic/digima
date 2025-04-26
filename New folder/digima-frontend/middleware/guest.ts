@@ -5,11 +5,25 @@ export default defineNuxtRouteMiddleware((to, from) => {
   // console.log(route)
 
   if (cookie.value) {
-    if ((route.path === "/login") || (route.path === "/register")) {
-      if (cookie.value.user.name === "member") {
-        return navigateTo("/dashboard");
-      } else {
-        return navigateTo("/admin/dashboard");
+    if (route.path === "/login" || route.path === "/register") {
+      // if (cookie.value.user.name === "member") {
+      //   return navigateTo("/dashboard");
+      // } else {
+      //   return navigateTo("/admin/dashboard");
+      // }
+
+      switch (cookie.value.user.name) {
+        case "admin":
+          return navigateTo("/admin/dashboard");
+        break;
+
+        case "member":
+          return navigateTo("/dashboard");
+        break;
+
+        case "cashier":
+          return navigateTo("/cashierdashboard");
+        break;
       }
     }
   }

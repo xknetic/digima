@@ -4,7 +4,7 @@ import { ref } from "vue";
 // Layout
 definePageMeta({
   layout: "authenticated-layout",
-  path: "/achieversreward",
+  path: "/admin/achieversreward",
 });
 
 // Fetching the API

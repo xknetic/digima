@@ -16,6 +16,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\PaymentMethodController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
@@ -42,3 +43,4 @@ Route::apiResource('Inventories', InventoryController::class);
 Route::apiResource('Carts', CartController::class);
 Route::apiResource('OrderItems', OrderItemController::class);
 Route::apiResource('Orders', OrdersController::class);
+Route::apiResource('PaymentMethods', PaymentMethodController::class);

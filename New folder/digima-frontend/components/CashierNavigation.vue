@@ -62,7 +62,7 @@
       <span class="truncate">Payout Processing</span>
     </ResponsiveNavLink>
 
-    <ResponsiveNavLink class="items-center" :href="'/admin/productcategory'">
+    <ResponsiveNavLink class="items-center" :href="'/admin/stockistandbranches'">
       <div class="rounded-full">
         <svg
           xmlns="http://www.w3.org/2000/svg"

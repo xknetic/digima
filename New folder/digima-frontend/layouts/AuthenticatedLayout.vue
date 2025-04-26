@@ -1,5 +1,9 @@
 <script setup>
-const isSidebarOpen = ref(false);
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+console.log(route.path)
+;const isSidebarOpen = ref(false);
 onMounted(() => {
   const savedSidebarState = localStorage.getItem("isSidebarOpen");
   if (savedSidebarState !== null) {
@@ -42,7 +46,7 @@ const logout = async (event) => {
     <div class="flex">
       <!-- Sidebar -->
       <aside
-        :class="isSidebarOpen ? 'w-[15vw]' : 'w-19 xl:visible xl:block hidden'"
+        :class="isSidebarOpen ? 'w-[20vw]' : 'w-19 xl:visible xl:block hidden'"
         class="bg-white flex flex-col justify-between rounded-lg transition-all duration-300"
       >
         <nav
@@ -106,7 +110,7 @@ const logout = async (event) => {
                 <span class="truncate">Member List</span>
               </ResponsiveNavLink>
 
-              <ResponsiveNavLink class="items-center" :href="'/admin/product'">
+              <ResponsiveNavLink class="items-center" :href="'/admin/product'" :active="'/admin/items'">
                 <div class="rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -126,25 +130,52 @@ const logout = async (event) => {
                 <span class="truncate">Product</span>
               </ResponsiveNavLink>
 
-              <ResponsiveNavLink class="items-center" :href="'/admin/items'">
-                <div class="rounded-full">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-6"
+              <DropDown2nd>
+                <template #trigger>
+                  <button
+                    class="w-full cursor-pointer text-gray-700 hover:text-gray-900 hover:bg-slate-100 px-2 py-1 rounded-md text-md font-medium flex space-x-2 transition duration-150 ease-in-out"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
-                    />
-                  </svg>
-                </div>
-                <span class="truncate">Items</span>
-              </ResponsiveNavLink>
+                    <div class="rounded-full">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                        />
+                      </svg>
+                    </div>
+                    <span class="truncate">Reward Points</span>
+                  </button>
+                </template>
+
+                <template #content>
+                  <div class="flex space-x-2 px-[1.5vw]">
+                    <div class="bg-gray-500 w-[1px]" />
+                    <div class="space-y-1">
+                      <ResponsiveNavLink
+                        class="items-center"
+                        :href="'/admin/items'"
+                      >
+                        <span class="truncate">Items</span>
+                      </ResponsiveNavLink>
+
+                      <ResponsiveNavLink
+                        class="items-center"
+                        :href="'/admin/items'"
+                      >
+                        <span class="truncate">Claimed Reward Points</span>
+                      </ResponsiveNavLink>
+                    </div>
+                  </div>
+                </template>
+              </DropDown2nd>
 
               <ResponsiveNavLink
                 class="items-center"
@@ -208,7 +239,7 @@ const logout = async (event) => {
 
       <!-- Main -->
       <main class="flex-1">
-        <div class="flex flex-col h-screen w-[85vw]">
+        <div class="flex flex-col h-screen w-[80vw]">
           <!-- top navigation -->
           <nav class="border-b-1 border-slate-200">
             <div class="flex justify-between p-4 items-center">

@@ -1,149 +1,227 @@
 <script setup>
-import { ref } from "vue";
-
 // Layout
 definePageMeta({
   layout: "authenticated-layout",
-  path: "/stockist&branches",
+  path: "/admin/stockistandbranches",
+  name: "Stockist/Branches",
+  middleware: "auth",
 });
 
 // Fetching the API
-const {
-  data: slots,
-  error,
-  refresh,
-} = await useFetch("http://127.0.0.1:8000/api/Slots");
+const { data: paymentmethods } = await useFetch(
+  "http://127.0.0.1:8000/api/PaymentMethods"
+);
 
-// Modals Scripts
-const showModalPlaceSlot = ref(false);
-const showModalCreateSlot = ref(false);
-const showModalLimit = ref(false);
-const showModalAddMember = ref(false);
-const showModalMore = ref(false);
+// const form = ref({
+//   payment_method_status: false,
+// });
 
-// Submit form for Add Member
-const form = ref({
-  slot_username: "",
-  slot_sponsor: "",
-  email: "",
-  password: "",
-  first_name: "",
-  middle_name: "",
-  last_name: "",
-});
-
-const submitForm = async (event) => {
-  event.preventDefault();
-  const { data, error: fetchError } = await useFetch(
-    "http://127.0.0.1:8000/api/Slots",
-    {
-      method: "POST",
-      body: JSON.stringify({
-        slot_username: form.value.slot_username,
-        slot_sponsor: form.value.slot_sponsor,
-        email: form.value.email,
-        password: form.value.password,
-        first_name: form.value.first_name,
-        middle_name: form.value.middle_name,
-        last_name: form.value.last_name,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+const submitForm = async (paymentmethod) => {
+  // event.preventDefault();
+  // console.log(paymentmethod);
+  try {
+    const result = await $fetch(
+      `http://127.0.0.1:8000/api/PaymentMethods/${paymentmethod.payment_method_id}`,
+      {
+        method: "PUT",
+        body: {
+          payment_method_status: paymentmethod.payment_method_status,
+        },
+      }
+    );
+    console.log(result);
+  } catch (error) {
+    console.error(error);
+  }
 };
+
+const itemsPerPage = 10;
+const {
+  currentPage,
+  totalPages,
+  paginatedItems,
+  secondPage,
+  nextPage,
+  prevPage,
+  firstPage,
+  lastPage,
+} = usePagination(paymentmethods, itemsPerPage);
+
+const showPaymentMethod = ref(false);
 </script>
 
 <template>
-  <div class="bg-white min-w-full h-full p-6 rounded-md shadow-md">
-    <div class="flex justify-between items-center">
-      <h3 class="text-2xl font-semibold text-gray-800">Stockist and Branches</h3>
+  <div>
+    <SecondaryButton @click="showPaymentMethod = true">
+      <p class="text-xs font-medium">Cashier Payment Methods</p>
+    </SecondaryButton>
 
-      <div class="flex items-center space-x-4">
-        <SecondaryButton @click="showModalPlaceSlot = true">
-          <p class="text-xs font-medium">Manage Cashier Payment Methods</p>
-        </SecondaryButton>
+    <!-- Table -->
 
-        <SecondaryButton @click="showModalCreateSlot = true">
-          <p class="text-xs font-medium">Manage Stockist Levels</p>
-        </SecondaryButton>
+    <Modal :show="showPaymentMethod" @close="showPaymentMethod = false">
+      <div class="bg-white p-4 rounded-lg">
+        <form @submit.prevent="submitForm">
+          <!-- Table -->
+          <div class="w-full mx-auto rounded-sm">
+            <div class="px-4">
+              <div class="overflow-x-auto">
+                <table class="table-auto w-full">
+                  <thead
+                    class="text-sm font-medium bg-gray-50 border border-slate-200"
+                  >
+                    <tr>
+                      <th class="py-3 px-4 whitespace-normal">
+                        Payment Method
+                      </th>
+                      <th class="p-2 whitespace-normal">Status</th>
+                      <th class="p-2 whitespace-normal"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-sm text-center divide-y divide-slate-200">
+                    <tr
+                      v-for="paymentmethod in paginatedItems"
+                      :key="paymentmethod.payment_method_id"
+                    >
+                      <td class="p-2 whitespace-normal">
+                        {{ paymentmethod.payment_method_name }}
+                      </td>
+                      <td class="p-2 whitespace-normal">
+                        <input
+                          type="checkbox"
+                          v-model="paymentmethod.payment_method_status"
+                          :true-value="1"
+                          :false-value="0"
+                          @click="submitForm(paymentmethod)"
+                        />
+                      </td>
+                      <td class="p-2 whitespace-normal">
+                        <button
+                          class="cursor-pointer hover:bg-slate-200 px-2 py-1 rounded-lg flex space-x-2 items-center"
+                        >
+                          More
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
 
-        <SecondaryButton @click="showModalLimit = true">
-          <p class="text-xs font-medium">Manage Locations</p>
-        </SecondaryButton>
-
-        <SecondaryButton @click="showModalAddMember = true">
-          <p class="text-xs font-medium">Edit Company Info</p>
-        </SecondaryButton>
-
-        <SecondaryButton @click="showModalAddMember = true">
-          <p class="text-xs font-medium">Add Branch / Stockist</p>
-        </SecondaryButton>
-      </div>
-    </div>
-    <hr class="h-px my-3 bg-gray-200 border-0" />
-
-    <!-- Bottom Table -->
-    <div class="overflow-x-auto w-[120vh] rounded-md">
-      <table
-        class="min-w-full table-auto text-sm text-center border-collapse text-gray-600"
-      >
-        <thead class="bg-slate-100 text-gray-700">
-          <tr>
-            <th class="px-4 py-2 border-b border-slate-100">Stockist / Branch Name</th>
-            <th class="px-4 py-2 border-b border-slate-100">Location</th>
-            <th class="px-4 py-2 border-b border-slate-100">Type</th>
-            <th class="px-4 py-2 border-b border-slate-100">Branch / Stockist Cashier Count</th>
-            <th class="px-4 py-2 border-b border-slate-100">Available Membership Code</th>
-            <th class="px-4 py-2 border-b border-slate-100">Available Product Code</th>
-            <th class="px-4 py-2 border-b border-slate-100">Sold Membership Code</th>
-            <th class="px-4 py-2 border-b border-slate-100">Sold Product Code</th>
-            <th class="px-4 py-2 border-b border-slate-100">Total Sale</th>
-            <th class="px-4 py-2 border-b border-slate-100"></th>
-          </tr>
-        </thead>
-        <tbody class="striped">
-          <tr v-for="slot in slots" :key="slot.id">
-            <td
-              class="px-4 py-2 border-b border-slate-200 font-medium text-gray-900"
+          <div
+            v-if="paginatedItems == itemsPerPage"
+            class="flex justify-end items-center space-x-1"
+          >
+            <button
+              @click="firstPage"
+              :disabled="currentPage === totalPages"
+              class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
             >
-              {{ slot.slot_username }}
-            </td>
-            <td class="px-4 py-2 border-b border-slate-200">
-              {{ slot.users.first_name }} {{ slot.users.last_name }}
-            </td>
-            <td class="px-4 py-2 border-b border-slate-200">
-              {{ slot.users.first_name }} {{ slot.users.last_name }}
-            </td>
-            <!-- <td
-              class="px-4 py-2 border-b border-slate-200"
-              v-if="slot.slot_sponsor != null"
-            >
-              {{ slot.sponsor_info.slot_username }}
-            </td> -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+                />
+              </svg>
+            </button>
 
-            <td class="px-4 py-2 border-b border-slate-200">
-              {{ slot.memberships ? slot.memberships.membership_name : "--" }}
-            </td>
-            <td class="px-4 py-2 border-b border-slate-200">PS</td>
-            <td class="px-4 py-2 border-b border-slate-200">
-              01/03/2025 (10:12 PM)
-            </td>
-            <td class="px-4 py-2 border-b border-slate-200">---</td>
-            <td class="px-4 py-2 border-b border-slate-200">14,500.00</td>
-            <td class="px-4 py-2 border-b border-slate-200">14,500.00</td>
-            <td
-              class="px-4 py-2 border-b border-slate-200 font-medium text-gray-900"
+            <button
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
             >
-              <button @click="showModalMore = true" class="cursor-pointer">
-                More
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15.75 19.5 8.25 12l7.5-7.5"
+                />
+              </svg>
+            </button>
+
+            <button
+              :disabled="currentPage"
+              class="hover:bg-slate-200 px-[10px] py-[2px] rounded-lg flex space-x-2 items-center border border-slate-300"
+            >
+              {{ currentPage }}
+            </button>
+
+            <div v-if="currentPage != totalPages">
+              <button
+                @click="nextPage"
+                :disabled="currentPage === totalPages"
+                class="cursor-pointer hover:bg-slate-200 px-[10px] py-[2px] rounded-lg flex space-x-2 items-center border border-slate-300"
+              >
+                {{ secondPage }}
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+            </div>
 
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                />
+              </svg>
+            </button>
+
+            <button
+              @click="lastPage"
+              :disabled="currentPage === totalPages"
+              class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <button
+            @click="submitForm(payment_method_id)"
+            class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
+          >
+            Update
+          </button>
+        </form>
+      </div>
+    </Modal>
   </div>
 </template>

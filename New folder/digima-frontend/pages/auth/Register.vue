@@ -10,7 +10,7 @@ const form = ref({
   first_name: "sample",
   middle_name: "asdas",
   last_name: "asdasd",
-  email: "sample@gmail.com",
+  email: "cashier@gmail.com",
   password: "password",
   confirm_password: "password",
 });

@@ -59,9 +59,17 @@ class ProductCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ProductCategory $productCategory)
+    public function update(Request $request, ProductCategory $productCategory, $category_id)
     {
         //
+        $productCategory = ProductCategory::findOrFail($category_id);
+
+        $request->validate([
+        ]);
+
+        $productCategory->update($request->all());
+
+        return response()->json($productCategory);
     }
 
     /**

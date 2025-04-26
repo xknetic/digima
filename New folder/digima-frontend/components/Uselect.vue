@@ -13,7 +13,9 @@
         stroke-width="1.5"
         stroke="currentColor"
         class="size-5"
-        :class="{ 'rotate-180 transition-all duration-200 ease-in-out': isOpen }"
+        :class="{
+          'rotate-180 transition-all duration-200 ease-in-out': isOpen,
+        }"
       >
         <path
           stroke-linecap="round"
@@ -25,7 +27,7 @@
 
     <ul
       v-if="isOpen"
-      class="absolute top-full left-0 w-full mt-1 bg-white border-1 border-gray-300 rounded-md max-h-48 overflow-y-auto"
+      class="absolute top-full left-0 w-full mt-1 bg-white border-1 border-gray-300 rounded-md max-h-48 overflow-y-auto z-50"
     >
       <li
         v-for="(option, index) in options"
@@ -96,7 +98,10 @@ const selectOption = (option) => {
 
 // Close the dropdown if clicked outside
 const handleClickOutside = (event) => {
-  if (dropdownContainer.value && !dropdownContainer.value.contains(event.target)) {
+  if (
+    dropdownContainer.value &&
+    !dropdownContainer.value.contains(event.target)
+  ) {
     isOpen.value = false;
   }
 };
