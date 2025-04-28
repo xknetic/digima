@@ -53,7 +53,16 @@ const props = defineProps({
     type: Array,
     required: true,
     validator(value) {
-      return value.every((option) => option.label && option.value);
+      return (
+        Array.isArray(value) &&
+        value.every(
+          (option) =>
+            option &&
+            typeof option === "object" &&
+            "label" in option &&
+            "value" in option
+        )
+      );
     },
   },
   modelValue: {

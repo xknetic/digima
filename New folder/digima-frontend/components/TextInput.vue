@@ -4,7 +4,7 @@ import { ref, watch } from "vue";
 const props = defineProps({
   id: {
     type: String,
-    required: true,
+    default: "",
   },
   placeholder: {
     type: String,
