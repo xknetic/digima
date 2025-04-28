@@ -15,6 +15,8 @@ class OrdersController extends Controller
     public function index()
     {
         //
+        $orders = Orders::all();
+        return response()->json($orders);
     }
 
     /**
@@ -46,7 +48,10 @@ class OrdersController extends Controller
         $receiverInfomations = ReceiverInfomation::create($receiverInfomations);
         
         $orders = $request->only([
-            'receiver_id ',
+            'subtotal',
+            'buyer_slot_id',
+            'grand_total',
+            'receiver_id',
         ]);
 
         $orders['receiver_id'] = $receiverInfomations->receiver_id;
@@ -54,11 +59,11 @@ class OrdersController extends Controller
         $orders = Orders::create($orders);
 
         $orderItems = $request->only([
+            'order_id',
             'item_id',
             'quantity',
             'order_item_subtotal',
             'order_item_price',
-            'order_id ',
         ]);
 
         $orderItems['order_id'] = $orders->order_id;

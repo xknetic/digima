@@ -35,7 +35,7 @@ const submitForm = async (paymentmethod) => {
   }
 };
 
-const itemsPerPage = 10;
+const itemsPerPage = 5;
 const {
   currentPage,
   totalPages,
@@ -73,7 +73,7 @@ const showPaymentMethod = ref(false);
                       <th class="py-3 px-4 whitespace-normal">
                         Payment Method
                       </th>
-                      <th class="p-2 whitespace-normal">Status</th>
+                      <th class="p-2 whitespace-normal">Enable/Disable</th>
                       <th class="p-2 whitespace-normal"></th>
                     </tr>
                   </thead>
@@ -91,7 +91,7 @@ const showPaymentMethod = ref(false);
                           v-model="paymentmethod.payment_method_status"
                           :true-value="1"
                           :false-value="0"
-                          @click="submitForm(paymentmethod)"
+                          @change="submitForm(paymentmethod)"
                         />
                       </td>
                       <td class="p-2 whitespace-normal">
@@ -214,12 +214,12 @@ const showPaymentMethod = ref(false);
             </button>
           </div>
 
-          <button
+          <!-- <button
             @click="submitForm(payment_method_id)"
             class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
           >
             Update
-          </button>
+          </button> -->
         </form>
       </div>
     </Modal>

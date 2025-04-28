@@ -27,11 +27,11 @@ return new class extends Migration
             // $table->string("buyer_email");
 
             // Relationship slot_id to slots to get buyer_sponsor_id, buyer_slot_username and buyer_slot_id
-            $table->unsignedBigInteger("buyer_sponsor_id");
-            $table->foreign('buyer_sponsor_id')->references('slot_id')->on('slots')->onDelete('cascade');
-            //
-            $table->unsignedBigInteger("buyer_slot_username");
-            $table->foreign('buyer_slot_username')->references('slot_id')->on('slots')->onDelete('cascade');
+            // $table->unsignedBigInteger("buyer_sponsor_id");
+            // $table->foreign('buyer_sponsor_id')->references('slot_id')->on('slots')->onDelete('cascade');
+            // //
+            // $table->unsignedBigInteger("buyer_slot_username");
+            // $table->foreign('buyer_slot_username')->references('slot_id')->on('slots')->onDelete('cascade');
             //
             $table->unsignedBigInteger("buyer_slot_id");
             $table->foreign('buyer_slot_id')->references('slot_id')->on('slots')->onDelete('cascade');
@@ -57,7 +57,9 @@ return new class extends Migration
             $table->double("tax_amount");
             $table->text("remarks")->nullable();
             $table->timestamp("date_status_changed")->nullable();
-            $table->string("payment_method");
+            // $table->string("payment_method");
+            $table->unsignedBigInteger("payment_method")->nullable();
+            $table->foreign('payment_method')->references('payment_method_id')->on('payment_methods')->onDelete('cascade');
             $table->double("payment_tendered");
             $table->string("courier")->nullable();
             $table->double("shipping_fee");
@@ -67,7 +69,7 @@ return new class extends Migration
             $table->double("handling_fee")->nullable();
 
             // Relationship Receiver_id to get informations
-            $table->unsignedBigInteger("receiver_id");
+            $table->unsignedBigInteger("receiver_id")->nullable();
             $table->foreign('receiver_id')->references('receiver_id')->on('receiver_infomations')->onDelete('cascade');
             // $table->string("receiver_name");
             // $table->string("receiver_contact");
