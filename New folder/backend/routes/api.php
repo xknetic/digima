@@ -17,6 +17,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentMethodController;
+use App\Models\User;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
@@ -25,6 +26,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/logout', [AuthenticatedSessionController::class, 'destroy']);
 });
 
+// Route::get('/alluser', function () {
+//     return User::all();
+// });
 Route::post('/register', [RegisteredUserController::class, 'store']);
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 

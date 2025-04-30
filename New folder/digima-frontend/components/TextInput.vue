@@ -2,6 +2,10 @@
 import { ref, watch } from "vue";
 
 const props = defineProps({
+  modelValue: {
+    type: [String, Number],
+    default: ''
+  },
   id: {
     type: String,
     default: "",
@@ -12,7 +16,7 @@ const props = defineProps({
   },
   type: {
     type: [Number, String],
-    default: "text",
+    default: '',
   },
   min: {
     type: Number,
@@ -28,16 +32,35 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits();
-const inputValue = ref("");
+const emit = defineEmits(["update:modelValue"]);
 
-watch(inputValue, (newValue) => {
-  emit("update:modelValue", newValue);
+const inputValue = ref(props.modelValue);
+
+// Keep `inputValue` in sync with `modelValue`
+watch(
+  () => props.modelValue,
+  (val) => {
+    inputValue.value = val;
+  }
+);
+
+// Emit updated value when user types
+watch(inputValue, (val) => {
+  let parsed = props.type === "number" ? Number(val) : val;
+
+  if (props.type === "number" && (val === "" || isNaN(parsed))) {
+    parsed = 0;
+  }
+
+  if (props.type === "number") {
+    // Clamp the value to min and max
+    if (parsed > props.max) parsed = props.max;
+    if (parsed < props.min) parsed = props.min;
+    inputValue.value = parsed;
+  }
+
+  emit("update:modelValue", parsed);
 });
-
-// const showPassword = ref(false);
-
-// const type = computed(() => (showPassword.value ? "text" : "password"));
 </script>
 
 <template>
