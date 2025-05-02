@@ -45,7 +45,7 @@ class OrdersController extends Controller
             'receiver_postal',
         ]);
 
-        $receiverInfomations = ReceiverInfomation::create($receiverInfomations);
+        // $receiverInfomations = ReceiverInfomation::create($receiverInfomations);
         
         $orders = $request->only([
             'subtotal',
@@ -54,7 +54,7 @@ class OrdersController extends Controller
             'receiver_id',
         ]);
 
-        $orders['receiver_id'] = $receiverInfomations->receiver_id;
+        // $orders['receiver_id'] = $receiverInfomations->receiver_id;
 
         $orders = Orders::create($orders);
 

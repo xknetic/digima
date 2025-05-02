@@ -26,12 +26,8 @@ const result = await $fetch("http://127.0.0.1:8000/api/user", {
 });
 data.value = result;
 
-const itemsIndex = ref([]);
-
 onMounted(() => {
   localStorage.removeItem("itemStorage");
-  const itemStorage = localStorage.getItem("itemStorage");
-  itemsIndex.value = itemStorage ? JSON.parse(itemStorage) : [];
 });
 
 const itemPickedUp = ref([
@@ -63,41 +59,47 @@ const filtereditems = ref([
   // { label: "None", value: null },
   ...items.value.map((item) => ({
     label: item.item_sku,
-    value: item,
+    value: item.item_id,
   })),
 ]);
 
 const form = ref({
   items: null,
   quantity: "",
+  buyer_slot_id: "",
 });
 
-const submitForm = async (event) => {
-  // event.preventDefault();
-  const selectedItem = form.value.items;
-  const itemInventory = inventories.value.find(
-    (inv) => inv.inventory_item_id === selectedItem.item_id
-  );
+const itemsIndex = ref([]);
 
-  const stock = itemInventory ? itemInventory.inventory_quantity : 0;
+const submitItems = () => {
+  const itemInventory  = computed(() => {
+    return inventories.value.find((inventory) => {
+      return (
+        inventory.items.item_id === form.value.items
+      );
+    });
+  });
+
   const itemStorage = JSON.parse(localStorage.getItem("itemStorage")) || [];
 
-  try {
-    itemStorage.push({
-      item: form.value.items,
-      stock: stock,
-      quantity: form.value.quantity,
-      subtotal: form.value.items.item_price * form.value.quantity,
-    });
+  itemStorage.push({
+    item_name: itemInventory.value.items.item_sku,
+    item_price: itemInventory.value.items.item_price,
+    stock: itemInventory.value.inventory_quantity,
+    quantity: form.value.quantity,
+    subtotal: itemInventory.value.items.item_price * form.value.quantity,
+  });
 
-    localStorage.setItem("itemStorage", JSON.stringify(itemStorage));
-    itemsIndex.value = itemStorage;
-  } catch (error) {}
+  localStorage.setItem("itemStorage", JSON.stringify(itemStorage));
+  itemsIndex.value = itemStorage;
 };
 
 const updateQuantity = () => {
   itemsIndex.value.forEach((entry) => {
-    entry.subtotal = entry.item.item_price * entry.quantity;
+    const inventory = inventories.value.find((inv) => inv.items.item_sku == entry.item_name);
+    if (inventory) {
+      entry.subtotal = inventory.items.item_price * entry.quantity;
+    }
   });
 
   localStorage.setItem("itemStorage", JSON.stringify(itemsIndex.value));
@@ -105,7 +107,9 @@ const updateQuantity = () => {
 
 const totalAmount = computed(() => {
   return itemsIndex.value.reduce((sum, item) => {
-    return sum + item.item.item_price * item.quantity;
+    const inventoryItem = inventories.value.find(inv => inv.items.item_sku == item.item_name);
+    const price = inventoryItem?.items?.item_price || 0;
+    return sum + price * item.quantity;
   }, 0);
 });
 
@@ -132,7 +136,32 @@ const filteredUsers = ref([
   })),
 ]);
 
-console.log(data.value.id);
+const submitForm = async (event) => {
+  event.preventDefault();
+  try {
+    // console.log(itemsIndex.value);
+    for (const item of itemsIndex.value) {
+      const getItem = items.value.find((items) => items.item_sku === item.item_name);
+      // console.log(item);
+
+      const result = await $fetch("http://127.0.0.1:8000/api/Orders", {
+        method: "POST",
+        body: {
+          item_id: getItem.item_id,
+          quantity: item.quantity,
+          order_item_subtotal: item.subtotal,
+          order_item_price: item.item_price,
+          buyer_slot_id: form.value.buyer_slot_id,
+        },
+      });
+
+      console.log("Submitted:", result);
+      localStorage.removeItem('cart');
+    }
+  } catch (error) {
+    console.error("Submission failed:", error);
+  }
+};
 </script>
 
 <template>
@@ -145,7 +174,7 @@ console.log(data.value.id);
             <SelectMenu
               :options="filtereditems"
               v-model="form.items"
-              @selected="submitForm"
+              @selected="submitItems"
               placeholder="Select membership package or product item"
             />
             <!-- <button @click="submitForm">asd</button> -->
@@ -172,10 +201,10 @@ console.log(data.value.id);
                   <tbody class="text-sm text-center divide-y divide-slate-200">
                     <tr v-for="(item, index) in itemsIndex" :key="index">
                       <td class="p-2 whitespace-normal">
-                        {{ item.item.item_sku }}
+                        {{ item.item_name }}
                       </td>
                       <td class="p-2 whitespace-normal">
-                        {{ item.item.item_price }}
+                        {{ item.item_price }}
                       </td>
                       <td class="p-2 whitespace-normal flex justify-center">
                         <TextInput
@@ -226,8 +255,8 @@ console.log(data.value.id);
 
       <!-- Sidebar -->
       <aside>
-        <div class="space-y-4">
-          <form @submit.prevent="submitForm">
+        <form @submit.prevent="submitForm">
+          <div class="space-y-4">
             <Card>
               <div class="grid grid-cols-2 items-center">
                 <div>
@@ -236,7 +265,7 @@ console.log(data.value.id);
                 </div>
                 <SelectMenu
                   :options="filteredUsers"
-                  @selected="submitForm"
+                  v-model="form.buyer_slot_id"
                   placeholder="Select Username"
                 />
               </div>
@@ -318,11 +347,11 @@ console.log(data.value.id);
                   <TextAreaInput id="item_inclusion_details" placeholder="" />
                 </div>
 
-                <PrimaryButton> Process Sale </PrimaryButton>
+                <PrimaryButton @click="submitForm"> Process Sale </PrimaryButton>
               </div>
             </Card>
-          </form>
-        </div>
+          </div>
+        </form>
       </aside>
     </div>
   </div>
