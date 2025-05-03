@@ -52,6 +52,8 @@ class OrdersController extends Controller
             'buyer_slot_id',
             'grand_total',
             'receiver_id',
+            'cashier_id',
+            'tax_amount',
         ]);
 
         // $orders['receiver_id'] = $receiverInfomations->receiver_id;

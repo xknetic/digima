@@ -35,12 +35,6 @@ const itemPickedUp = ref([
   { label: "No", value: false },
 ]);
 
-const vatable = ref([
-  { label: "None", value: null },
-  { label: "Inclusive", value: true },
-  { label: "Exclusive", value: false },
-]);
-
 const filteredPaymentMethods = computed(() =>
   paymentmethods.value.filter(
     (paymentmethod) => paymentmethod.payment_method_status
@@ -132,8 +126,14 @@ const getUsers = computed(() => {
 const filteredUsers = ref([
   ...getUsers.value.map((getUser) => ({
     label: getUser.users.email,
-    value: getUser,
+    value: getUser.users.id,
   })),
+]);
+
+const vatable = ref([
+  { label: "None", value: null },
+  { label: "Inclusive", value: console.log(490 / (1 + 0.12).toFixed(2)) },
+  { label: "Exclusive", value: false },
 ]);
 
 const submitForm = async (event) => {
@@ -152,10 +152,11 @@ const submitForm = async (event) => {
           order_item_subtotal: item.subtotal,
           order_item_price: item.item_price,
           buyer_slot_id: form.value.buyer_slot_id,
+          cashier_id: data.value.id
         },
       });
 
-      console.log("Submitted:", result);
+      // console.log("Submitted:", result);
       localStorage.removeItem('cart');
     }
   } catch (error) {
