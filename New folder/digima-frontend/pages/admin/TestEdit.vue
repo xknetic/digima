@@ -36,6 +36,14 @@ const submitForm = async (event) => {
     }
   );
 };
+
+const searchTerm = ref('')
+
+// Load full data once
+const { data: slots, pending } = await useFetch('http://127.0.0.1:8000/api/Slots')
+
+// Use composable to filter
+const { filtered, filter } = useLocalSearch(slots)
 </script>
 
 <template>
@@ -101,5 +109,17 @@ const submitForm = async (event) => {
       />
       <button type="submit">Update</button>
     </form>
+  </div>
+
+
+  <div>
+    <input
+      v-model="searchTerm"
+      @input="filter(searchTerm)"
+      type="text"
+      placeholder="Search..."
+    />
+
+      <div v-for="slot in filtered" :key="slot.id">{{ slot.slot_username }}</div>
   </div>
 </template>

@@ -7,6 +7,19 @@ definePageMeta({
   middleware: "auth",
 });
 
+const { data: orders } = await useFetch("http://127.0.0.1:8000/api/Orders");
+
+const itemsPerPage = 10;
+const {
+  currentPage,
+  totalPages,
+  paginatedItems,
+  nextPage,
+  prevPage,
+  secondPage,
+  firstPage,
+  lastPage,
+} = usePagination(orders, itemsPerPage);
 </script>
 
 <template>
@@ -44,12 +57,12 @@ definePageMeta({
               </tr>
             </thead>
             <tbody class="text-sm text-center divide-y divide-slate-200">
-              <tr v-for="item in paginatedItems" :key="item.item_id">
+              <tr v-for="order in paginatedItems" :key="order.order_id">
                 <td class="p-2 whitespace-normal">
-                  {{ item.item_sku }}
+                  {{ order.order_id }}
                 </td>
                 <td class="p-2 whitespace-normal">
-                  {{ item.item_price }}
+
                 </td>
                 <td class="p-2 whitespace-normal">
                   <button

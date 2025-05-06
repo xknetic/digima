@@ -54,25 +54,26 @@ class OrdersController extends Controller
             'receiver_id',
             'cashier_id',
             'tax_amount',
+            'delivery_method',
         ]);
 
         // $orders['receiver_id'] = $receiverInfomations->receiver_id;
 
         $orders = Orders::create($orders);
 
-        $orderItems = $request->only([
-            'order_id',
-            'item_id',
-            'quantity',
-            'order_item_subtotal',
-            'order_item_price',
-        ]);
+        // $orderItems = $request->only([
+        //     'order_id',
+        //     'item_id',
+        //     'quantity',
+        //     'order_item_subtotal',
+        //     'order_item_price',
+        // ]);
 
-        $orderItems['order_id'] = $orders->order_id;
+        // $orderItems['order_id'] = $orders->order_id;
 
-        $orderItems = OrderItems::create($orderItems);
+        // $orderItems = OrderItems::create($orderItems);
 
-        return response()->json(['message' => 'Order created successfully'], 200);
+        return response()->json(['order_id' => $orders->order_id]);
     }
 
     /**

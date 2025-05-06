@@ -77,6 +77,20 @@ const submitForm = async (event) => {
   console.log(result);
 };
 
+const itemsPerPage = 10;
+const {
+  currentPage,
+  totalPages,
+  paginatedItems,
+  secondPage,
+  nextPage,
+  prevPage,
+  firstPage,
+  lastPage,
+} = usePagination(slots, itemsPerPage);
+
+const { filtered, filter } = useLocalSearch(paginatedItems);
+
 // Modal
 const showCreateSlot = ref(false);
 </script>
@@ -87,7 +101,13 @@ const showCreateSlot = ref(false);
 
     <div class="flex justify-between items-center px-5 py-3">
       <div>
-        <p class="font-semibold">Search</p>
+        <TextInput
+        class="w-[50vh]"
+          v-model="searchTerm"
+          @input="filter(searchTerm)"
+          type="text"
+          placeholder="Search..."
+        />
       </div>
       <div class="flex flex-col space-y-2 justify-end items-end">
         <div class="flex space-x-2">
@@ -139,7 +159,7 @@ const showCreateSlot = ref(false);
               </tr>
             </thead>
             <tbody class="text-sm text-center divide-y divide-slate-200">
-              <tr v-for="slot in slots" :key="slot.id">
+              <tr v-for="slot in filtered" :key="slot.id">
                 <td class="p-2 whitespace-normal">
                   {{ slot.slot_username }}
                 </td>
@@ -176,6 +196,112 @@ const showCreateSlot = ref(false);
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div
+          v-if="paginatedItems == itemsPerPage"
+          class="flex justify-end items-center space-x-1"
+        >
+          <button
+            @click="firstPage"
+            :disabled="currentPage === totalPages"
+            class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+              />
+            </svg>
+          </button>
+
+          <button
+            @click="prevPage"
+            :disabled="currentPage === 1"
+            class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 19.5 8.25 12l7.5-7.5"
+              />
+            </svg>
+          </button>
+
+          <button
+            :disabled="currentPage"
+            class="hover:bg-slate-200 px-[10px] py-[2px] rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            {{ currentPage }}
+          </button>
+
+          <div v-if="currentPage != totalPages">
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="cursor-pointer hover:bg-slate-200 px-[10px] py-[2px] rounded-lg flex space-x-2 items-center border border-slate-300"
+            >
+              {{ secondPage }}
+            </button>
+          </div>
+
+          <button
+            @click="nextPage"
+            :disabled="currentPage === totalPages"
+            class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m8.25 4.5 7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </button>
+
+          <button
+            @click="lastPage"
+            :disabled="currentPage === totalPages"
+            class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -216,7 +342,9 @@ const showCreateSlot = ref(false);
                     id="membership"
                     class="mt-2 p-2 border border-gray-300 rounded-lg w-full"
                   >
-                    <option disabled value="">Please select a Membership</option>
+                    <option disabled value="">
+                      Please select a Membership
+                    </option>
                     <option
                       v-for="membership in memberships"
                       :key="membership.id"

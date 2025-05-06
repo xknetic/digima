@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OrderItems;
+use App\Models\Orders;
 use Illuminate\Http\Request;
 
 class OrderItemController extends Controller
@@ -35,7 +36,17 @@ class OrderItemController extends Controller
             // Database Table
         ]);
 
-        OrderItems::create($request->all());
+        $orderItems = $request->only([
+            'order_id',
+            'item_id',
+            'quantity',
+            'order_item_subtotal',
+            'order_item_price',
+        ]);
+
+        // $orderItems['order_id'] = $orders->order_id;
+
+        $orderItems = OrderItems::create($orderItems);
 
         return response()->json("Cart Created");
     }

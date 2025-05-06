@@ -61,28 +61,35 @@ const form = ref({
   items: null,
   quantity: "",
   buyer_slot_id: "",
+  tax_type: "",
 });
 
 const itemsIndex = ref([]);
 
 const submitItems = () => {
-  const itemInventory  = computed(() => {
+  const itemInventory = computed(() => {
     return inventories.value.find((inventory) => {
-      return (
-        inventory.items.item_id === form.value.items
-      );
+      return inventory.items.item_id === form.value.items;
     });
   });
 
   const itemStorage = JSON.parse(localStorage.getItem("itemStorage")) || [];
 
-  itemStorage.push({
-    item_name: itemInventory.value.items.item_sku,
-    item_price: itemInventory.value.items.item_price,
-    stock: itemInventory.value.inventory_quantity,
-    quantity: form.value.quantity,
-    subtotal: itemInventory.value.items.item_price * form.value.quantity,
-  });
+  const itemstor = itemStorage.find(
+    (stor) => stor.item_name === itemInventory.value.items.item_sku
+  );
+
+  if (itemstor == null) {
+    if (itemInventory.value.inventory_quantity != 0) {
+      itemStorage.push({
+        item_name: itemInventory.value.items.item_sku,
+        item_price: itemInventory.value.items.item_price,
+        stock: itemInventory.value.inventory_quantity,
+        quantity: form.value.quantity,
+        subtotal: itemInventory.value.items.item_price * form.value.quantity,
+      });
+    }
+  }
 
   localStorage.setItem("itemStorage", JSON.stringify(itemStorage));
   itemsIndex.value = itemStorage;
@@ -90,7 +97,9 @@ const submitItems = () => {
 
 const updateQuantity = () => {
   itemsIndex.value.forEach((entry) => {
-    const inventory = inventories.value.find((inv) => inv.items.item_sku == entry.item_name);
+    const inventory = inventories.value.find(
+      (inv) => inv.items.item_sku == entry.item_name
+    );
     if (inventory) {
       entry.subtotal = inventory.items.item_price * entry.quantity;
     }
@@ -101,7 +110,9 @@ const updateQuantity = () => {
 
 const totalAmount = computed(() => {
   return itemsIndex.value.reduce((sum, item) => {
-    const inventoryItem = inventories.value.find(inv => inv.items.item_sku == item.item_name);
+    const inventoryItem = inventories.value.find(
+      (inv) => inv.items.item_sku == item.item_name
+    );
     const price = inventoryItem?.items?.item_price || 0;
     return sum + price * item.quantity;
   }, 0);
@@ -111,7 +122,7 @@ const deleteItemFromLocalStorage = (itemToDelete) => {
   const storedItems = JSON.parse(localStorage.getItem("itemStorage")) || [];
 
   const updatedItems = storedItems.filter(
-    (item) => item.item.item_id !== itemToDelete.item.item_id
+    (item) => item.item_sku !== itemToDelete.item_sku
   );
 
   localStorage.setItem("itemStorage", JSON.stringify(updatedItems));
@@ -130,34 +141,56 @@ const filteredUsers = ref([
   })),
 ]);
 
+// console.log(490 - 490 / (1 + 0.12))
+
 const vatable = ref([
   { label: "None", value: null },
-  { label: "Inclusive", value: console.log(490 / (1 + 0.12).toFixed(2)) },
-  { label: "Exclusive", value: false },
+  { label: "Inclusive", value: "inclusive" },
+  { label: "Exclusive", value: "exclusive" },
 ]);
 
 const submitForm = async (event) => {
   event.preventDefault();
-  try {
-    // console.log(itemsIndex.value);
-    for (const item of itemsIndex.value) {
-      const getItem = items.value.find((items) => items.item_sku === item.item_name);
-      // console.log(item);
 
-      const result = await $fetch("http://127.0.0.1:8000/api/Orders", {
+  let taxAmount = 0;
+
+  if (form.value.tax_type === "inclusive") {
+    taxAmount = totalAmount.value - totalAmount.value / (1 + 0.12);
+  } else if (form.value.tax_type === "exclusive") {
+    taxAmount = totalAmount.value * 0.12;
+  }
+
+  try {
+    const orders = await $fetch("http://127.0.0.1:8000/api/Orders", {
+      method: "POST",
+      body: {
+        buyer_slot_id: form.value.buyer_slot_id,
+        cashier_id: data.value.id,
+        tax_amount: taxAmount,
+        subtotal: totalAmount.value,
+        delivery_method: "none",
+      },
+    });
+
+    const orderId = orders.order_id;
+
+    for (const item of itemsIndex.value) {
+      const getItem = items.value.find(
+        (items) => items.item_sku === item.item_name
+      );
+
+      const result = await $fetch("http://127.0.0.1:8000/api/OrderItems", {
         method: "POST",
         body: {
+          order_id: orderId,
           item_id: getItem.item_id,
           quantity: item.quantity,
           order_item_subtotal: item.subtotal,
           order_item_price: item.item_price,
-          buyer_slot_id: form.value.buyer_slot_id,
-          cashier_id: data.value.id
         },
       });
 
-      // console.log("Submitted:", result);
-      localStorage.removeItem('cart');
+      localStorage.removeItem("cart");
     }
   } catch (error) {
     console.error("Submission failed:", error);
@@ -302,6 +335,7 @@ const submitForm = async (event) => {
                   <Uselect
                     id="type"
                     :options="vatable"
+                    v-model="form.tax_type"
                     placeholder="Select a VAT"
                   />
                 </div>
@@ -348,7 +382,9 @@ const submitForm = async (event) => {
                   <TextAreaInput id="item_inclusion_details" placeholder="" />
                 </div>
 
-                <PrimaryButton @click="submitForm"> Process Sale </PrimaryButton>
+                <PrimaryButton @click="submitForm">
+                  Process Sale
+                </PrimaryButton>
               </div>
             </Card>
           </div>
