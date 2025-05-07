@@ -28,9 +28,9 @@ const {
     <ProductNavigation />
 
     <!-- Table -->
-    <div class="w-full mx-auto rounded-sm mt-4">
-      <div class="p-4">
-        <div class="">
+    <div class="w-full mx-auto rounded-sm">
+      <div class="px-4">
+        <div class="overflow-x-auto">
           <table class="table-auto w-full">
             <thead
               class="text-sm font-medium bg-gray-50 border border-slate-200"

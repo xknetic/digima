@@ -44,6 +44,8 @@ const { data: slots, pending } = await useFetch('http://127.0.0.1:8000/api/Slots
 
 // Use composable to filter
 const { filtered, filter } = useLocalSearch(slots)
+
+const showModal = ref(false);
 </script>
 
 <template>
@@ -122,4 +124,15 @@ const { filtered, filter } = useLocalSearch(slots)
 
       <div v-for="slot in filtered" :key="slot.id">{{ slot.slot_username }}</div>
   </div>
+
+
+  <button @click="showModal = true">Open Modal</button>
+
+  <Modal :show="showModal" max-width="lg" @close="showModal = false">
+    <div class="p-6 bg-white">
+      <h2 class="text-xl font-bold">Hello!</h2>
+      <p>This is your modal content.</p>
+      <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded" @click="showModal = false">Close</button>
+    </div>
+  </Modal>
 </template>

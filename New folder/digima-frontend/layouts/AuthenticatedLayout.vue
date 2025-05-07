@@ -156,8 +156,8 @@ const logout = async (event) => {
                 </template>
 
                 <template #content>
-                  <div class="flex space-x-2 px-[1.5vw]">
-                    <div class="bg-gray-500 w-[1px]" />
+                  <div class="space-x-2 px-[1.5vw]">
+                    <!-- <div class="bg-gray-500 w-[1px]" /> -->
                     <div class="space-y-1">
                       <ResponsiveNavLink
                         class="items-center"
@@ -219,6 +219,53 @@ const logout = async (event) => {
                 </div>
                 <span class="truncate">Cashier</span>
               </ResponsiveNavLink>
+
+              <DropDown2nd>
+                <template #trigger>
+                  <button
+                    class="w-full cursor-pointer text-gray-700 hover:text-gray-900 hover:bg-slate-100 px-2 py-1 rounded-md text-md font-medium flex space-x-2 transition duration-150 ease-in-out"
+                  >
+                    <div class="rounded-full">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                        />
+                      </svg>
+                    </div>
+                    <span class="truncate">Marketing Plan</span>
+                  </button>
+                </template>
+
+                <template #content>
+                  <div class="space-x-2 px-[1.5vw]">
+                    <!-- <div class="bg-gray-500 w-[1px]" /> -->
+                    <div class="space-y-1">
+                      <ResponsiveNavLink
+                        class="items-center"
+                        :href="'/admin/items'"
+                      >
+                        <span class="truncate">All Plan</span>
+                      </ResponsiveNavLink>
+
+                      <ResponsiveNavLink
+                        class="items-center"
+                        :href="'/admin/items'"
+                      >
+                        <span class="truncate">Unilevel</span>
+                      </ResponsiveNavLink>
+                    </div>
+                  </div>
+                </template>
+              </DropDown2nd>
             </div>
           </div>
 
@@ -239,7 +286,7 @@ const logout = async (event) => {
 
       <!-- Main -->
       <main class="flex-1">
-        <div class="flex flex-col h-screen w-[80vw]">
+        <div class="flex flex-col h-screen w-full">
           <!-- top navigation -->
           <nav class="border-b-1 border-slate-200">
             <div class="flex justify-between p-4 items-center">
