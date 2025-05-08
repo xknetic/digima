@@ -1,142 +1,163 @@
 <script setup>
-import { ref } from "vue";
-
 // Layout
 definePageMeta({
   layout: "authenticated-layout",
-  path: "/marketingplan",
+  path: "/admin/marketingplan",
+  middleware: "auth",
+  name: "Marketing Plan",
 });
 
-// Fetching the API
-const {
-  data: slots,
-  error,
-  refresh,
-} = await useFetch("http://127.0.0.1:8000/api/Slots");
+// Get api exchange rates to btc only but can convert to usd then to php or any other currency
+const { data: currency } = await useFetch('https://api.coingecko.com/api/v3/exchange_rates');
 
-// Modals Scripts
-const showModalPlaceSlot = ref(false);
-const showModalCreateSlot = ref(false);
-const showModalLimit = ref(false);
-const showModalAddMember = ref(false);
-const showModalMore = ref(false);
-
-// Submit form for Add Member
-const form = ref({
-  slot_username: "",
-  slot_sponsor: "",
-  email: "",
-  password: "",
-  first_name: "",
-  middle_name: "",
-  last_name: "",
+const currentCurrency = computed(() => {
+  const usd = 1 / currency.value.rates.usd.value;
+  const php = 1 / currency.value.rates.php.value;
+  const currentValue = usd / php;
+  return currentValue;
 });
 
-const submitForm = async (event) => {
-  event.preventDefault();
-  const { data, error: fetchError } = await useFetch(
-    "http://127.0.0.1:8000/api/Slots",
-    {
-      mode: 'no-cors',
-      method: "POST",
-      body: JSON.stringify({
-        slot_username: form.value.slot_username,
-        slot_sponsor: form.value.slot_sponsor,
-        email: form.value.email,
-        password: form.value.password,
-        first_name: form.value.first_name,
-        middle_name: form.value.middle_name,
-        last_name: form.value.last_name,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-};
-
-// Track the selected category for the table
-const activeCategory = ref("information");
-
-// Method to change the active category
-const showCategory = (category) => {
-  activeCategory.value = category;
-  currentPage.value = 1; // Reset to first page whenever category changes
-};
+console.log(currency);
 </script>
 
 <template>
-  <div class="bg-white min-w-full h-full p-6 rounded-md shadow-md">
-    <div class="flex justify-between items-center">
-      <h3 class="text-2xl font-semibold text-gray-800">Marketing Plan</h3>
+  <div>
+    
 
-      <div class="flex items-center space-x-4">
-        <SecondaryButton @click="showModalPlaceSlot = true">
-          <p class="text-xs font-medium">Lockdown Configuration</p>
-        </SecondaryButton>
+    <!-- Table -->
+    <div class="w-full mx-auto rounded-sm">
+      <div class="px-4">
+        <div class="overflow-x-auto">
+          <table class="table-auto w-full">
+            <thead
+              class="text-sm font-medium bg-gray-50 border border-slate-200"
+            >
+              <tr>
+                <th class="py-3 px-4 whitespace-normal">Complain Name</th>
+                <th class="p-2 whitespace-normal">Earning Label</th>
+                <th class="p-2 whitespace-normal">Genealogy Type</th>
+                <th class="p-2 whitespace-normal">Trigger</th>
+                <th class="p-2 whitespace-normal">Status</th>
+                <th class="p-2 whitespace-normal"></th>
+              </tr>
+            </thead>
+            <tbody class="text-sm text-center divide-y divide-slate-200">
+              <tr >
+                <td class="p-2 whitespace-normal">
+                  
+                </td>
 
-        <SecondaryButton @click="showModalCreateSlot = true">
-          <p class="text-xs font-medium">Currency Configuration</p>
-        </SecondaryButton>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <SecondaryButton @click="showModalLimit = true">
-          <p class="text-xs font-medium">Investment Configuration</p>
-        </SecondaryButton>
+        <div
+          v-if="paginatedItems == itemsPerPage"
+          class="flex justify-end items-center space-x-1"
+        >
+          <button
+            @click="firstPage"
+            :disabled="currentPage === totalPages"
+            class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+              />
+            </svg>
+          </button>
 
-        <SecondaryButton @click="showModalAddMember = true">
-          <p class="text-xs font-medium">Customize Settings</p>
-        </SecondaryButton>
+          <button
+            @click="prevPage"
+            :disabled="currentPage === 1"
+            class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 19.5 8.25 12l7.5-7.5"
+              />
+            </svg>
+          </button>
 
-        <SecondaryButton @click="showModalAddMember = true">
-          <p class="text-xs font-medium">Manage Membership</p>
-        </SecondaryButton>
+          <button
+            :disabled="currentPage"
+            class="hover:bg-slate-200 px-[10px] py-[2px] rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            {{ currentPage }}
+          </button>
+
+          <div v-if="currentPage != totalPages">
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="cursor-pointer hover:bg-slate-200 px-[10px] py-[2px] rounded-lg flex space-x-2 items-center border border-slate-300"
+            >
+              {{ secondPage }}
+            </button>
+          </div>
+
+          <button
+            @click="nextPage"
+            :disabled="currentPage === totalPages"
+            class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m8.25 4.5 7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </button>
+
+          <button
+            @click="lastPage"
+            :disabled="currentPage === totalPages"
+            class="cursor-pointer hover:bg-slate-200 p-1 rounded-lg flex space-x-2 items-center border border-slate-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
-    <hr class="h-px my-3 bg-gray-200 border-0" />
-
-    <!-- Bottom Table -->
-    <div class="overflow-x-auto w-full rounded-md">
-      <table
-        class="min-w-full table-auto text-sm text-center border-collapse text-gray-600"
-      >
-        <thead class="bg-slate-100 text-gray-700">
-          <tr>
-            <th class="px-4 py-2 border-b border-slate-100">Complain Name</th>
-            <th class="px-4 py-2 border-b border-slate-100">Earning Label</th>
-            <th class="px-4 py-2 border-b border-slate-100">Genealogy</th>
-            <th class="px-4 py-2 border-b border-slate-100">Trigger</th>
-            <th class="px-4 py-2 border-b border-slate-100">Status</th>
-            <th class="px-4 py-2 border-b border-slate-100"></th>
-          </tr>
-        </thead>
-        <tbody class="striped">
-          <tr v-for="slot in slots" :key="slot.id">
-            <td
-              class="px-4 py-2 border-b border-slate-200 font-medium text-gray-900"
-            >
-              {{ slot.slot_username }}
-            </td>
-            <!-- <td
-              class="px-4 py-2 border-b border-slate-200"
-              v-if="slot.slot_sponsor != null"
-            >
-              {{ slot.sponsor_info.slot_username }}
-            </td> -->
-            <td class="px-4 py-2 border-b border-slate-200">PS</td>
-            <td class="px-4 py-2 border-b border-slate-200">---</td>
-            <td class="px-4 py-2 border-b border-slate-200">14,500.00</td>
-            <td class="px-4 py-2 border-b border-slate-200">14,500.00</td>
-            <td
-              class="px-4 py-2 border-b border-slate-200 font-medium text-gray-900"
-            >
-              <button @click="showModalMore = true" class="cursor-pointer">
-                More
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
   </div>
 </template>

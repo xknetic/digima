@@ -251,7 +251,7 @@ const logout = async (event) => {
                     <div class="space-y-1">
                       <ResponsiveNavLink
                         class="items-center"
-                        :href="'/admin/items'"
+                        :href="'/admin/marketingplan'"
                       >
                         <span class="truncate">All Plan</span>
                       </ResponsiveNavLink>
