@@ -22,7 +22,7 @@ console.log(currency);
 
 <template>
   <div>
-    
+    <CurrencyConfiguration convertFrom="php" convertTo="usd" />
 
     <!-- Table -->
     <div class="w-full mx-auto rounded-sm">
