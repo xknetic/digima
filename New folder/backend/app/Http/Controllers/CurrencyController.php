@@ -13,6 +13,8 @@ class CurrencyController extends Controller
     public function index()
     {
         //
+        $currencies = Currency::all();
+        return response()->json($currencies);
     }
 
     /**
@@ -50,9 +52,42 @@ class CurrencyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Currency $currency)
+    public function update(Request $request, Currency $currency, $id)
     {
         //
+        $currencies = Currency::all();
+        $currency = Currency::findOrFail($id);
+
+        $request->validate([]);
+
+        dd($request);
+
+        if ($request->currency_buying == 1) {
+            foreach ($currencies as $currencies) {
+                if ($currencies->currency_buying == 0) {
+
+                    dd($currencies);
+                    $currencies->update([
+                        'currency_buying' => 0,
+                    ]);
+                }
+            }
+        }
+
+        // foreach ($currencies as $x) {
+        //     if ($x->currency_buying == 1) {
+        //         $currency = [
+        //             'currency_buying' => 0,
+        //         ];
+        //         $currency->save();
+        //     }
+        // }
+
+        // dd($request);
+
+        // $currency->update($request->all());
+
+        return response()->json($currency);
     }
 
     /**

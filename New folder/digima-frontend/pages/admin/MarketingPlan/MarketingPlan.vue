@@ -7,22 +7,17 @@ definePageMeta({
   name: "Marketing Plan",
 });
 
-// Get api exchange rates to btc only but can convert to usd then to php or any other currency
-const { data: currency } = await useFetch('https://api.coingecko.com/api/v3/exchange_rates');
-
-const currentCurrency = computed(() => {
-  const usd = 1 / currency.value.rates.usd.value;
-  const php = 1 / currency.value.rates.php.value;
-  const currentValue = usd / php;
-  return currentValue;
-});
-
-console.log(currency);
+const showCurrencyConfig = ref(false);
 </script>
 
 <template>
   <div>
-    <CurrencyConfiguration convertFrom="php" convertTo="usd" />
+    <button
+      @click="showCurrencyConfig = true"
+      class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
+    >
+      Currency Configuration
+    </button>
 
     <!-- Table -->
     <div class="w-full mx-auto rounded-sm">
@@ -42,11 +37,8 @@ console.log(currency);
               </tr>
             </thead>
             <tbody class="text-sm text-center divide-y divide-slate-200">
-              <tr >
-                <td class="p-2 whitespace-normal">
-                  
-                </td>
-
+              <tr>
+                <td class="p-2 whitespace-normal"></td>
               </tr>
             </tbody>
           </table>
@@ -159,5 +151,18 @@ console.log(currency);
         </div>
       </div>
     </div>
+
+    <!-- Modal -->
+    <Modal
+      :show="showCurrencyConfig"
+      :closeable="true"
+      @close="showCurrencyConfig = false"
+    >
+      <div class="bg-white rounded-lg p-10">
+        <Card>
+          <CurrencyConfiguration convertFrom="php" convertTo="usd" />
+        </Card>
+      </div>
+    </Modal>
   </div>
 </template>
