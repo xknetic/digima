@@ -93,7 +93,11 @@ const {
                           <NuxtLink
                             :to="`/admin/products/inventoryandcodes/${item.item_id}`"
                           >
-                            Inventory And Codes
+                          <ResponsiveNavLink class="items-center">
+                            <div class="rounded-full text-sm">
+                              Inventory And Codes
+                            </div>
+                          </ResponsiveNavLink>
                           </NuxtLink>
                         </div>
                       </div>

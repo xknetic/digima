@@ -110,7 +110,7 @@ const logout = async (event) => {
                 <span class="truncate">Member List</span>
               </ResponsiveNavLink>
 
-              <ResponsiveNavLink class="items-center" :href="'/admin/product'" :active="'/admin/items'">
+              <ResponsiveNavLink class="items-center" :href="'/admin/product'">
                 <div class="rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -251,7 +251,7 @@ const logout = async (event) => {
                     <div class="space-y-1">
                       <ResponsiveNavLink
                         class="items-center"
-                        :href="'/admin/marketingplan'"
+                        :href="'/admin/allplan'"
                       >
                         <span class="truncate">All Plan</span>
                       </ResponsiveNavLink>

@@ -52,40 +52,25 @@ class CurrencyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Currency $currency, $id)
+    public function update(Request $request, Currency $currency, $currency_id)
     {
         //
-        $currencies = Currency::all();
-        $currency = Currency::findOrFail($id);
+        $currency = Currency::findOrFail($currency_id);
 
-        $request->validate([]);
-
-        dd($request);
+        $request->validate([
+            'currency_buying' => 'nullable|in:0,1',
+    'currency_default' => 'nullable|in:0,1',
+        ]);
 
         if ($request->currency_buying == 1) {
-            foreach ($currencies as $currencies) {
-                if ($currencies->currency_buying == 0) {
-
-                    dd($currencies);
-                    $currencies->update([
-                        'currency_buying' => 0,
-                    ]);
-                }
-            }
+            Currency::where('currency_id', '!=', $currency_id)->update(['currency_buying' => 0]);
+        }
+        
+        if ($request->currency_default == 1) {
+            Currency::where('currency_id', '!=', $currency_id)->update(['currency_default' => 0]);
         }
 
-        // foreach ($currencies as $x) {
-        //     if ($x->currency_buying == 1) {
-        //         $currency = [
-        //             'currency_buying' => 0,
-        //         ];
-        //         $currency->save();
-        //     }
-        // }
-
-        // dd($request);
-
-        // $currency->update($request->all());
+        $currency->update($request->all());
 
         return response()->json($currency);
     }

@@ -1,6 +1,4 @@
 <script setup>
-import { ref, computed } from "vue";
-
 // Layout
 definePageMeta({
   layout: "authenticated-layout",
@@ -63,18 +61,21 @@ const userFilter = computed(() => {
 
 const submitForm = async (event) => {
   event.preventDefault();
-  const result = await useFetch(
-    `http://127.0.0.1:8000/api/Slot/Generate/${firstNullCode.value.code_id}`,
-    {
-      method: "PUT",
-      body: {
-        slot_id: form.value.slot_id,
-        slot_sponsor: form.value.slot_sponsor,
-        slot_membership_id: form.value.slot_membership_id,
-      },
-    }
-  );
-  console.log(result);
+  try {
+    const result = await useFetch(
+      `http://127.0.0.1:8000/api/Slot/Generate/${firstNullCode.value.code_id}`,
+      {
+        method: "PUT",
+        body: {
+          slot_id: form.value.slot_id,
+          slot_sponsor: form.value.slot_sponsor,
+          slot_membership_id: form.value.slot_membership_id,
+        },
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const itemsPerPage = 10;
@@ -102,7 +103,7 @@ const showCreateSlot = ref(false);
     <div class="flex justify-between items-center px-5 py-3">
       <div>
         <TextInput
-        class="w-[50vh]"
+          class="w-[50vh]"
           v-model="searchTerm"
           @input="filter(searchTerm)"
           type="text"

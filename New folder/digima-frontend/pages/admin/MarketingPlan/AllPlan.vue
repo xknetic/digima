@@ -2,22 +2,42 @@
 // Layout
 definePageMeta({
   layout: "authenticated-layout",
-  path: "/admin/marketingplan",
+  path: "/admin/allplan",
   middleware: "auth",
-  name: "Marketing Plan",
+  name: "All Plan",
 });
+
+const { data: mlmplans } = await useFetch("http://127.0.0.1:8000/api/MlmPlans");
 
 const showCurrencyConfig = ref(false);
 </script>
 
 <template>
   <div>
-    <button
-      @click="showCurrencyConfig = true"
-      class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
-    >
-      Currency Configuration
-    </button>
+    <MarketingPlanNavigation />
+
+    <div class="flex justify-between items-center px-5 py-3">
+      <div>
+        <!-- <TextInput
+        class="w-[50vh]"
+          v-model="searchTerm"
+          @input="filter(searchTerm)"
+          type="text"
+          placeholder="Search..."
+        /> -->
+        search
+      </div>
+      <div class="flex flex-col space-y-2 justify-end items-end">
+        <div class="flex space-x-2">
+          <button
+            @click="showCurrencyConfig = true"
+            class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
+          >
+          Currency Configuration
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Table -->
     <div class="w-full mx-auto rounded-sm">
@@ -28,7 +48,7 @@ const showCurrencyConfig = ref(false);
               class="text-sm font-medium bg-gray-50 border border-slate-200"
             >
               <tr>
-                <th class="py-3 px-4 whitespace-normal">Complain Name</th>
+                <th class="py-3 px-4 whitespace-normal">Complan Name</th>
                 <th class="p-2 whitespace-normal">Earning Label</th>
                 <th class="p-2 whitespace-normal">Genealogy Type</th>
                 <th class="p-2 whitespace-normal">Trigger</th>
@@ -37,14 +57,17 @@ const showCurrencyConfig = ref(false);
               </tr>
             </thead>
             <tbody class="text-sm text-center divide-y divide-slate-200">
-              <tr>
-                <td class="p-2 whitespace-normal"></td>
+              <tr v-for="mlmplan in mlmplans" :key="mlmplan.mlm_plan_id">
+                <td class="p-2 whitespace-normal">{{ mlmplan.mlm_plan_code }}</td>
+                <td class="p-2 whitespace-normal">{{ mlmplan.mlm_plan_code }}</td>
+                <td class="p-2 whitespace-normal">{{ mlmplan.mlm_plan_code }}</td>
+                <td class="p-2 whitespace-normal">{{ mlmplan.mlm_plan_trigger }}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div
+        <!-- <div
           v-if="paginatedItems == itemsPerPage"
           class="flex justify-end items-center space-x-1"
         >
@@ -148,20 +171,17 @@ const showCurrencyConfig = ref(false);
               />
             </svg>
           </button>
-        </div>
+        </div> -->
       </div>
     </div>
 
     <!-- Modal -->
     <Modal
       :show="showCurrencyConfig"
-      :closeable="true"
       @close="showCurrencyConfig = false"
     >
       <div class="bg-white rounded-lg p-10">
-        <Card>
-          <CurrencyConfiguration convertFrom="php" convertTo="usd" />
-        </Card>
+        <CurrencyConfiguration />
       </div>
     </Modal>
   </div>
