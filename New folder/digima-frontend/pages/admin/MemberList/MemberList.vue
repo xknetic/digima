@@ -90,6 +90,7 @@ const {
   lastPage,
 } = usePagination(slots, itemsPerPage);
 
+const searchTerm = ref('')
 const { filtered, filter } = useLocalSearch(paginatedItems);
 
 // Modal

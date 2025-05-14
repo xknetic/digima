@@ -43,6 +43,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
+
+        dd(auth());
         auth()->user()->tokens()->delete();
         return [
             'status' => 200,

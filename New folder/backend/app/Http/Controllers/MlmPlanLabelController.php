@@ -13,6 +13,8 @@ class MlmPlanLabelController extends Controller
     public function index()
     {
         //
+        $mlm_plan_labels = MlmPlanLabel::with(['mlm_plans'])->get();
+        return response()->json($mlm_plan_labels);
     }
 
     /**

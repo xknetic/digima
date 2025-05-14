@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('label_id');
             $table->string('plan_code');
             $table->string('plan_name');
-            $table->unsignedBigInteger("mlm_plan_id");
+            $table->unsignedBigInteger("mlm_plan_id")->nullable();
             $table->foreign('mlm_plan_id')->references('mlm_plan_id')->on('mlm_plans')->onDelete('cascade');
         });
     }

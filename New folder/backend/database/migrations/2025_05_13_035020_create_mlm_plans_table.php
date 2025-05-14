@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('mlm_plan_id');
             $table->string('mlm_plan_code');
             // $table->string('mlm_plan_label');
-            // $table->string('mlm_plan_type');
+            $table->string('mlm_genealogy_type')->nullable();
             $table->string('mlm_plan_trigger');
             $table->boolean('mlm_plan_enable')->default(true);
         });
