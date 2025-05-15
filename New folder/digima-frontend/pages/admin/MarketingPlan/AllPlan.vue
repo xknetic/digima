@@ -25,6 +25,8 @@ const { filtered, filter } = useLocalSearch(planLabels, [
 ]);
 
 const showOptions = ref(false);
+const showManageMembership = ref(false);
+const selectedPlan = ref(null);
 </script>
 
 <template>
@@ -43,12 +45,11 @@ const showOptions = ref(false);
       </div>
       <div class="flex flex-col space-y-2 justify-end items-end">
         <div class="flex space-x-2">
-          <button
-            @click="showCurrencyConfig = true"
-            class="cursor-pointer bg-black text-white px-4 py-1 text-sm font-semibold rounded-lg"
+          <ButtonPrimarySmall
+            @click="showManageMembership = true"
           >
-            Currency Configuration
-          </button>
+            Manage Membership
+          </ButtonPrimarySmall>
         </div>
       </div>
     </div>
@@ -95,7 +96,7 @@ const showOptions = ref(false);
                     Active
                   </span>
                   <span
-                    class="text-red-500 text-xs font-medium rounded-sm border border-red-500 px-2 py-1"
+                    class="text-red-600 text-xs font-medium rounded-sm border border-red-600 px-2 py-1"
                     v-else
                   >
                     Inactive
@@ -104,7 +105,7 @@ const showOptions = ref(false);
                 <td class="p-2 whitespace-normal">
                   <span>
                     <button
-                    @click="showOptions = true"
+                    @click="() => { selectedPlan = mlmplanlabel; showOptions = true; }"
                       class="cursor-pointer hover:bg-slate-200 px-1 py-1 rounded-lg"
                     >
                       <svg
@@ -245,7 +246,13 @@ const showOptions = ref(false);
     <!-- Modal -->
     <Modal :show="showOptions" @close="showOptions = false">
       <div class="bg-white rounded-lg p-10">
-        <CurrencyConfiguration />
+        <ComplanDirect v-if="selectedPlan.mlm_plans.mlm_plan_code === 'Direct'" :complan="selectedPlan" />
+      </div>
+    </Modal>
+
+    <Modal :show="showManageMembership" @close="showManageMembership = false">
+      <div class="bg-white rounded-lg p-10">
+        <ComplanManageMembership />
       </div>
     </Modal>
   </div>

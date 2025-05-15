@@ -59,9 +59,19 @@ class MembershipController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Membership $membership)
+    public function update(Request $request, Membership $membership, $membership_id)
     {
         //
+        $validatedData = $request->validate([
+            'membership_name' => 'required',
+        ]);
+
+        $membership = Membership::updateOrCreate(
+            ['membership_id' => $membership_id],
+            $validatedData
+        );
+
+        dd($membership);
     }
 
     /**
