@@ -64,6 +64,7 @@ class MembershipController extends Controller
         //
         $validatedData = $request->validate([
             'membership_name' => 'required',
+            'hierarchy' => ''
         ]);
 
         $membership = Membership::updateOrCreate(
@@ -71,14 +72,30 @@ class MembershipController extends Controller
             $validatedData
         );
 
-        dd($membership);
+        dd($membership->membership_id);
+
+        foreach ($memberships->membership_id as $m) {
+
+        }
+        
+
+        return response()->json($membership);
+
+        // dd($membership);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Membership $membership)
+    public function destroy(Membership $membership, $membership_id)
     {
         //
+        $membership = Membership::findOrFail($membership_id);
+
+        $membership->archive = true;
+        $membership->save();
+
+        return response()->json($membership);
+        dd($membership);
     }
 }

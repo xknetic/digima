@@ -13,6 +13,8 @@ class MembershipDirectIncomeController extends Controller
     public function index()
     {
         //
+        $membershipDirectIncome = MembershipDirectIncome::with('memberships', 'membership_entries')->get();
+        return response()->json($membershipDirectIncome);
     }
 
     /**

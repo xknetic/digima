@@ -69,7 +69,7 @@ const submitForm = async (event) => {
             >
           </p>
         </div>
-        <PrimaryButton> Login </PrimaryButton>
+        <ButtonPrimaryMedium> Login</ButtonPrimaryMedium>
       </form>
     </div>
   </div>

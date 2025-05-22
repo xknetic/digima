@@ -1,4 +1,8 @@
-<script setup></script>
+<script setup>
+function handleClick(row, col) {
+  console.log(`Clicked cell: ${row},${col}`);
+}
+</script>
 
 <template>
   <div class="w-screen h-screen">
@@ -35,4 +39,15 @@
       </button>
     </div>
   </div>
+
+
+   <table>
+    <tr v-for="row in 3" :key="row">
+      <td v-for="col in 3" :key="col">
+        <button @click="handleClick(row, col)">
+          {{ `${row},${col}` }}
+        </button>
+      </td>
+    </tr>
+  </table>
 </template>
